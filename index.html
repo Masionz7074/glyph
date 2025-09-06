@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minecraft Configurator</title>
+  <link rel="icon" type="image/png" href="image/icon.png">
+
+  <style>
+    /* Import custom Minecraft font */
+    @font-face {
+      font-family: "Minecraft";
+      src: url("fonts/Minecraft.ttf") format("truetype");
+    }
+
+    body {
+      background: url("image/dirt.png") repeat;
+      font-family: "Minecraft", monospace;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 10px 0;
+    }
+
+    h2 {
+      margin: 15px 0;
+    }
+
+    .chest {
+      position: relative;
+      display: inline-block;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(9, 48px);
+      grid-template-rows: repeat(6, 48px);
+      gap: 4px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .slot {
+      width: 48px;
+      height: 48px;
+      background: url("image/hotbar_0.png") no-repeat center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .slot img {
+      max-width: 80%;
+      max-height: 80%;
+      pointer-events: none;
+    }
+
+    .slot.selected {
+      outline: 2px solid yellow;
+    }
+
+    .form-section {
+      margin: 20px auto;
+      text-align: center;
+    }
+
+    /* Inputs & generated text stay normal font */
+    .generated-text {
+      font-family: Arial, sans-serif !important;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 6px;
+      margin: 6px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      background: #6a0dad;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #8a2be2;
+    }
+
+    #discord {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    #discord img {
+      width: 40px;
+      cursor: pointer;
+    }
+
+    /* Preview box */
+    .preview {
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      width: 400px;
+      border-radius: 10px;
+    }
+
+    .preview-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: "Minecraft", monospace;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .preview-title img {
+      width: 30px;
+      height: 30px;
+      image-rendering: pixelated;
+    }
+
+    .preview-bottom {
+      font-family: "Minecraft", monospace;
+      font-size: 18px;
+      color: #cccccc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Discord Button -->
+  <a id="discord" href="https://discord.gg/6FxqdTmxAu" target="_blank">
+    <img src="image/discord.png" alt="Discord">
+  </a>
+
+  <h1>Minecraft Configurator</h1>
+
+  <div class="form-section">
+    <label class="generated-text">Wait Duration (seconds):</label>
+    <input type="number" id="waitDuration" value="2" min="0" class="generated-text"><br>
+
+    <label class="generated-text">Bottom Label:</label>
+    <input type="text" id="bottomText" value="Some text at the bottom" class="generated-text" oninput="updatePreview()"><br>
+
+    <label class="generated-text">Title Text:</label>
+    <input type="text" id="titleText" value="Title(?)" class="generated-text" oninput="updatePreview()"><br>
+  </div>
+
+  <!-- Live Preview -->
+  <div class="preview">
+    <div class="preview-title">
+      <img id="previewIcon" src="image/mine_chop_dig_animation.png" alt="Icon">
+      <span id="previewTitle">Title(?)</span>
+    </div>
+    <div id="previewBottom" class="preview-bottom">Some text at the bottom</div>
+  </div>
+
+  <h2>Pick an Icon</h2>
+
+  <div class="slots" id="iconSlots"></div>
+
+  <button onclick="exportConfig()">Export JSON</button>
+
+  <script>
+    const textures = [
+      "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
+      "language_glyph.png","lapis.png","lan_icon.png","invite_base.png","icon_summer.png",
+      "icon_staffpicks.png","icon_map.png","icon_llama.png","icon_fall.png","icon_crafting.png",
+      "icon_cookie.png","icon_carrot.png","icon_cake.png","icon_bookshelf.png","icon_book_writable.png",
+      "icon_blackfriday.png","icon_bell.png","icon_balloon.png","icon_armor.png",
+      "hunger_background.png","hunger_effect.png","hunger_blink.png",
+      "loading_spin.png","realms_plus_hover.png","realmsStoriesIconAnimated.png","icon_panda.png"
+    ];
+
+    let selectedTexture = "mine_chop_dig_animation.png"; // default
+
+    const slots = document.getElementById("iconSlots");
+    const totalSlots = 54; // Large chest grid (6 rows × 9 cols)
+
+    for (let i = 0; i < totalSlots; i++) {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+
+      if (i < textures.length) {
+        const img = document.createElement("img");
+        img.src = "image/" + textures[i];
+        slot.appendChild(img);
+
+        slot.onclick = () => {
+          document.querySelectorAll(".slot").forEach(s => s.classList.remove("selected"));
+          slot.classList.add("selected");
+          selectedTexture = textures[i];
+          document.getElementById("previewIcon").src = "image/" + selectedTexture;
+        };
+      }
+
+      slots.appendChild(slot);
+    }
+
+    function updatePreview() {
+      document.getElementById("previewTitle").textContent = document.getElementById("titleText").value;
+      document.getElementById("previewBottom").textContent = document.getElementById("bottomText").value;
+    }
+
+    function buildConfigObject(){
+      function texturePath(name){
+        if(!name) return "textures/ui/mine_chop_dig_animation";
+        return "textures/ui/" + name.replace(/\.png$/i, "");
+      }
+
+      return {
+        "$loading_animation_wait_duration": parseFloat(document.getElementById("waitDuration").value) || 0,
+        "tip_maybe": {
+          "text": document.getElementById("bottomText").value || ""
+        },
+        "maybe_title": {
+          "text": document.getElementById("titleText").value || ""
+        },
+        "loading_icon_pickaxe": {
+          "texture": texturePath(selectedTexture)
+        }
+      };
+    }
+
+    function exportConfig() {
+      const config = buildConfigObject();
+
+      const blob = new Blob([JSON.stringify(config, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "config.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize preview on load
+    updatePreview();
+  </script>
+
+</body>
+</html>

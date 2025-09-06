@@ -3,50 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <title>Minecraft Configurator</title>
+
   <style>
+    /* Import Minecraft font */
+    @font-face {
+      font-family: "Minecraft";
+      src: url("fonts/Minecraft.ttf") format("truetype");
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
-      background-color: #222;
-      background-size: cover;
+      text-align: center;
+      font-family: "Minecraft", monospace;
+      background-color: #000;
       background-position: center;
       background-attachment: fixed;
+      background-size: cover;
+      image-rendering: pixelated; /* Keep blocky pixel look */
     }
+
     .container {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(30, 30, 30, 0.85);
       padding: 20px;
       border-radius: 10px;
       display: inline-block;
       margin-top: 20px;
+      color: white;
     }
-    h1 {
-      margin-top: 0;
+
+    h1, h2, label, .preview {
+      font-family: "Minecraft", monospace;
     }
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      font-weight: bold;
-    }
+
     input {
       padding: 5px;
       width: 300px;
-      margin-bottom: 10px;
+      margin: 8px 0;
+      border: 2px solid #555;
+      border-radius: 4px;
+      font-family: Arial, sans-serif; /* Inputs readable */
     }
+
     .preview {
       margin: 20px auto;
       padding: 10px;
-      border: 2px solid #888;
+      border: 2px solid #555;
       width: 400px;
-      background: rgba(240, 240, 240, 0.9);
+      background: rgba(0, 0, 0, 0.6);
       border-radius: 6px;
+      color: #ccc;
     }
+
     .preview img {
       width: 32px;
       height: 32px;
       vertical-align: middle;
+      image-rendering: pixelated;
     }
+
     .icon-grid {
       display: grid;
       grid-template-columns: repeat(9, 40px);
@@ -54,38 +69,55 @@
       justify-content: center;
       margin-top: 20px;
     }
+
     .slot {
       width: 40px;
       height: 40px;
-      border: 1px solid #999;
-      background: rgba(255,255,255,0.7);
+      border: 1px solid #777;
+      background: rgba(50, 50, 50, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
+
     .slot img {
       max-width: 32px;
       max-height: 32px;
+      image-rendering: pixelated;
     }
+
     .slot.selected {
-      border: 2px solid red;
+      border: 2px solid yellow;
     }
+
     button {
       margin-top: 15px;
       padding: 10px 20px;
-      font-weight: bold;
+      font-family: "Minecraft", monospace;
+      font-size: 16px;
       cursor: pointer;
+      background: #6a0dad;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+
+    button:hover {
+      background: #8a2be2;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Minecraft Configurator</h1>
+
     <label>Wait Duration (seconds):</label>
     <input id="waitDuration" type="number" value="2">
+
     <label>Bottom Label:</label>
     <input id="bottomText" type="text" value="Some text at the bottom" oninput="updatePreview()">
+
     <label>Title Text:</label>
     <input id="titleText" type="text" value="Title(?)" oninput="updatePreview()">
 
@@ -102,11 +134,10 @@
   </div>
 
   <script>
-    // Background (fullscreen cover for all)
+    // Random Minecraft backgrounds
     const backgrounds = ["image/dirt.png", "image/stone.png", "image/sky.png"];
     const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    document.body.style.background = `url(${randomBg}) no-repeat center center fixed`;
-    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundImage = `url(${randomBg})`;
 
     const textures = [
       "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
@@ -118,10 +149,10 @@
       "loading_spin.png","realms_plus_hover.png","realmsStoriesIconAnimated.png","icon_panda.png"
     ];
 
-    let selectedTexture = "mine_chop_dig_animation.png"; // default
+    let selectedTexture = "mine_chop_dig_animation.png";
 
     const slots = document.getElementById("iconSlots");
-    const totalSlots = 54; // 6 rows × 9 cols
+    const totalSlots = 54;
 
     for (let i = 0; i < totalSlots; i++) {
       const slot = document.createElement("div");
@@ -179,7 +210,6 @@
       URL.revokeObjectURL(url);
     }
 
-    // Initialize preview
     updatePreview();
   </script>
 </body>

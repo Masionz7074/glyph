@@ -10,7 +10,6 @@
       text-align: center;
       margin: 20px;
       padding: 0;
-      background: none;
     }
 
     h1 {
@@ -147,6 +146,11 @@
   <button onclick="exportConfig()">Export JSON</button>
 
   <script>
+    // Pick random background each refresh
+    const backgrounds = ["image/dirt.png", "image/stone.png", "image/sky.png"];
+    const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    document.body.style.background = `url(${randomBg}) repeat`;
+
     const textures = [
       "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
       "language_glyph.png","lapis.png","lan_icon.png","invite_base.png","icon_summer.png",

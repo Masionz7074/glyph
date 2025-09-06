@@ -4,791 +4,800 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Minecraft Loading Screen Configurator</title>
+<link rel="icon" href="image/icon.png" type="image/png">
 <style>
-  @font-face{
+  @font-face {
     font-family: "MinecraftTen";
     src: url("fonts/MinecraftTen.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
   }
 
-  :root{
-    --panel-w: 420px;
-    --preview-w: 680px;
+  :root {
+    --primary: #8C52FF;
+    --primary-dark: #6B3CC0;
+    --secondary: #FF6B35;
+    --dark-bg: #0b0210;
+    --darker-bg: #07010A;
+    --panel-bg: rgba(25, 10, 35, 0.8);
+    --text-light: #E2DAF3;
+    --text-muted: #A895D6;
+    --border-color: rgba(140, 82, 255, 0.3);
   }
 
-  html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:#0b0210;color:#eee}
-  body{
-    display:flex;
-    gap:20px;
-    padding:20px;
-    box-sizing:border-box;
-    align-items:flex-start;
-    justify-content:center;
-    background: linear-gradient(180deg, #0b0210 0%, #1a0620 40%, #220a2a 100%);
-    background-attachment: fixed;
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
-  /* left: textures */
-  .sidebar{
-    width:var(--panel-w);
-    max-height:calc(100vh - 40px);
-    overflow:auto;
-    background:rgba(255,255,255,0.06);
-    border-radius:10px;
-    padding:14px;
-    box-sizing:border-box;
-    border:1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(2px);
-  }
-  .sidebar h3{margin:6px 0 12px;font-size:16px;text-align:center;font-family: "MinecraftTen", monospace}
-  .texture-grid{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:8px;
-  }
-  .texture-tile{
-    width:56px;height:56px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:4px;border-radius:4px;
-  }
-  .texture-tile img{max-width:100%;max-height:100%;image-rendering:pixelated}
-
-  .controls-row{display:flex;gap:8px;margin-top:12px;justify-content:center}
-  .btn{padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#eee;cursor:pointer}
-  .btn.primary{background:#5b3cff;border-color:#3d2ae6}
-  .small{padding:6px 8px;font-size:13px}
-
-  /* center: preview & export */
-  .main{
-    width:var(--preview-w);
-    max-height:calc(100vh - 40px);
-    overflow:auto;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    align-items:center;
+  body {
+    font-family: 'MinecraftTen', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+    color: var(--text-light);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
   }
 
-  .header{
-    width:100%;
-    padding:8px 12px;border-radius:8px;text-align:left;
-    color:#eee;font-family: "MinecraftTen", monospace;
-    font-size:20px;
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 20px;
   }
 
-  /* preview area styled as the loading template */
-  .preview-wrap{width:100%;display:flex;justify-content:center}
-  .preview{
-    width:100%;
-    max-width:760px;
-    height:420px;
-    border-radius:6px;
-    overflow:hidden;
-    position:relative;
-    box-sizing:border-box;
-    background: linear-gradient(180deg, rgba(10,5,12,0.9), rgba(20,6,30,0.95));
-    border: 1px solid rgba(255,255,255,0.04);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 20px;
   }
 
-  /* big centered Minecraft logo */
-  .preview .logo{
-    position:absolute; top:28px; left:50%; transform:translateX(-50%);
-    pointer-events:none;
-  }
-  .preview .logo img{width:420px;height:auto;image-rendering:pixelated;display:block}
-
-  /* loading bars centered horizontally */
-  .loading-bars{
-    position:absolute;
-    left:50%; top:50%; transform:translate(-50%,-10%);
-    width:420px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
-  }
-  .bar-back{
-    width:100%; height:18px;
-    background: url("image/loading_bar_background.png") no-repeat center center;
-    background-size:100% 100%;
-    border:3px solid rgba(255,255,255,0.12);
-    box-sizing:border-box;
-  }
-  .bar-fill{
-    width:30%; height:100%;
-    background: url("image/loading_bar_filler.png") no-repeat left center;
-    background-size:cover;
-    box-sizing:border-box;
-  }
-  .grass-overlay{
-    width:100%; height:18px;
-    margin-top:-18px;
-    background: url("image/grass_bar.png") no-repeat center top;
-    background-size:contain;
-    pointer-events:none;
-    image-rendering:pixelated;
+  h1 {
+    font-size: 2.2rem;
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(140, 82, 255, 0.5);
   }
 
-  /* bottom-left loading icon & text */
-  .bottom-left{
-    position:absolute; left:28px; bottom:18px; display:flex;align-items:center;gap:10px;pointer-events:none;
-    color:#e6e6e6;font-family:"MinecraftTen",monospace;font-size:14px;
-  }
-  .bottom-left img{width:36px;height:36px;image-rendering:pixelated}
-
-  /* bottom center tip */
-  .tip{
-    position:absolute; left:50%; bottom:26px; transform:translateX(-50%); font-family: "MinecraftTen", monospace; font-size:14px; color:#dcdcdc; letter-spacing:1px;
-  }
-
-  /* small corner icons (right-bottom) */
-  .corner-icons{
-    position:absolute; right:26px; bottom:18px; display:flex; gap:10px; align-items:center;
-  }
-  .corner-icons img{width:28px;height:28px;image-rendering:pixelated}
-
-  /* top-left title text */
-  .top-left-title{
-    position:absolute; left:20px; top:18px; font-family:"MinecraftTen",monospace; font-size:20px; color:#fff; letter-spacing:1px;
+  .discord-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    padding: 8px 15px;
+    border-radius: 5px;
+    background: rgba(140, 82, 255, 0.1);
   }
 
-  /* items list & property editor (right column) */
-  .sidebar2{
-    width:var(--panel-w);
-    max-height:calc(100vh - 40px);
-    overflow:auto;
-    background:rgba(255,255,255,0.06);
-    border-radius:10px;
-    padding:14px;
-    box-sizing:border-box;
-    border:1px solid rgba(255,255,255,0.06);
+  .discord-link:hover {
+    color: var(--primary);
+    background: rgba(140, 82, 255, 0.2);
+    transform: translateY(-2px);
   }
-  .sidebar2 h3{margin:6px 0 12px;font-size:16px;text-align:center;font-family: "MinecraftTen", monospace}
-  .items-list{display:flex;flex-direction:column;gap:8px}
-  .item-row{border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:6px;background:rgba(255,255,255,0.02);display:flex;gap:8px;align-items:center}
-  .mini{width:44px;height:44px;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.01)}
-  .mini img{max-width:100%;max-height:100%;image-rendering:pixelated}
-  .meta{flex:1;display:flex;flex-direction:column;gap:6px}
-  .meta input, .meta select{padding:6px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.25);color:#fff}
 
-  .export-row{display:flex;gap:8px;align-items:center;margin-top:10px}
-  textarea#jsonOut{width:100%;height:240px;box-sizing:border-box;padding:8px;font-family:monospace;font-size:13px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0b0b0b;color:#ddd}
+  .discord-icon {
+    width: 24px;
+    height: 24px;
+  }
 
-  .muted{font-size:12px;color:#c2c2c2}
-  @media (max-width:1220px){
-    body{flex-direction:column;align-items:stretch;padding:12px}
-    .sidebar,.sidebar2,.main{width:auto}
-    .preview{height:480px}
+  .panel {
+    background: var(--panel-bg);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    height: fit-content;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .panel-title {
+    font-size: 1.4rem;
+    color: var(--primary);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-title svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .texture-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .texture-item {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .texture-item:hover {
+    border-color: var(--primary);
+    transform: scale(1.05);
+  }
+
+  .texture-item.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary), 0 0 15px rgba(140, 82, 255, 0.5);
+  }
+
+  .texture-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+
+  .texture-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px;
+    font-size: 0.7rem;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'MinecraftTen', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-sm {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-light);
+    font-family: 'MinecraftTen', sans-serif;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(140, 82, 255, 0.3);
+  }
+
+  .preview-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(10, 5, 12, 0.9), rgba(20, 6, 30, 0.95));
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  }
+
+  .preview-title {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 1.2rem;
+    color: var(--primary);
+  }
+
+  .preview-logo {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 55px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+  }
+
+  .loading-bars {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+  }
+
+  .bar-back {
+    width: 100%;
+    height: 16px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 60%;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  .preview-bottom {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+  }
+
+  .preview-icons {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .preview-icon {
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary);
+    border-radius: 5px;
+  }
+
+  .items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .item-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+  }
+
+  .item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .item-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+
+  .item-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .export-area {
+    margin-top: 20px;
+  }
+
+  .export-area textarea {
+    width: 100%;
+    height: 200px;
+    margin-top: 10px;
+    font-family: monospace;
+    resize: vertical;
+  }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: var(--primary);
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+
+  .notification.show {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1200px) {
+    .container {
+      grid-template-columns: 1fr;
+    }
+    
+    .panel {
+      max-height: unset;
+    }
   }
 </style>
 </head>
 <body>
 
-  <!-- left textures -->
-  <div class="sidebar">
-    <h3>Textures (image/)</h3>
-    <div class="muted" style="text-align:center;margin-bottom:8px">Click tile → Add Selected</div>
-    <div id="textureGrid" class="texture-grid"></div>
-    <div class="controls-row">
-      <button id="addSelectedBtn" class="btn primary small">Add Selected</button>
-      <button id="clearAllBtn" class="btn small">Clear All</button>
+<div class="container">
+  <header>
+    <h1>Minecraft Loading Screen Configurator</h1>
+    <a href="https://discord.gg/6FxqdTmxAu" target="_blank" class="discord-link">
+      <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.18.33.25c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.02c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/>
+      </svg>
+      Join Discord
+    </a>
+  </header>
+
+  <!-- Textures Panel -->
+  <div class="panel">
+    <h2 class="panel-title">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,14.09 4.8,16 6.11,17.41L9.88,9.88L17.41,6.11C16,4.8 14.09,4 12,4M12,20A8,8 0 0,0 20,12C20,9.91 19.2,8 17.89,6.59L14.12,14.12L6.59,17.89C8,19.2 9.91,20 12,20M12,12L11.23,11.23L9.76,14.76L12,12M12,12L14.24,9.24L12.77,12.77L12,12Z"/>
+      </svg>
+      Textures
+    </h2>
+    <p style="color: var(--text-muted); margin-bottom: 15px;">Click a texture to select it, then click "Add Selected" to add it to your scene.</p>
+    
+    <div class="texture-grid" id="textureGrid">
+      <!-- Textures will be populated by JavaScript -->
     </div>
-    <div class="muted" style="margin-top:10px;text-align:center">Tip: exported paths will be <code>textures/ui/&lt;name&gt;</code></div>
+    
+    <div class="btn-group">
+      <button id="addSelectedBtn" class="btn btn-primary btn-sm">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+        </svg>
+        Add Selected
+      </button>
+      <button id="clearAllBtn" class="btn btn-secondary btn-sm">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+        </svg>
+        Clear All
+      </button>
+    </div>
   </div>
 
-  <!-- center preview & scene editor -->
-  <div class="main">
-    <div class="header">Minecraft Loading Configurator</div>
-
-    <div style="display:flex;gap:12px;align-items:flex-start;width:100%;justify-content:space-between">
-      <div style="display:flex;flex-direction:column;gap:6px;width:260px">
-        <label class="muted">Wait duration (seconds)</label>
-        <input id="waitDuration" type="number" value="2" />
-        <label class="muted">Preview title</label>
-        <input id="previewTitleInput" type="text" value="Title(?)" />
-        <label class="muted">Preview bottom text</label>
-        <input id="previewBottomInput" type="text" value="Some text at the bottom" />
-      </div>
-
-      <div class="preview-wrap">
-        <div class="preview" id="previewPanel">
-          <div class="top-left-title" id="previewTopLeft">TITLE{?}</div>
-
-          <div class="logo">
-            <img id="previewLogo" src="image/title.png" alt="logo">
-          </div>
-
-          <div class="loading-bars" id="loadingBars">
-            <div class="bar-back" id="barBack">
-              <div class="bar-fill" id="barFill"></div>
-            </div>
-            <div class="grass-overlay" id="grassOverlay"></div>
-          </div>
-
-          <div class="bottom-left" id="bottomLeft">
-            <img id="bottomLeftIcon" src="image/worldsIcon.png" alt="">
-            <div id="bottomLeftText" style="font-family: MinecraftTen, monospace">LOADING...</div>
-          </div>
-
-          <div class="corner-icons" id="cornerIcons">
-            <img id="corner1" src="image/mine_chop_dig_animation.png" alt="">
-            <img id="corner2" src="image/realmsStoriesIconAnimated.png" alt="">
-            <img id="corner3" src="image/loading_spin.png" alt="">
-          </div>
-
-          <div class="tip" id="previewBottom">Some text at the bottom</div>
+  <!-- Preview Panel -->
+  <div class="panel">
+    <h2 class="panel-title">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+      </svg>
+      Preview & Settings
+    </h2>
+    
+    <div class="preview-container">
+      <div class="preview-title" id="previewTitle">TITLE(?)</div>
+      <div class="preview-logo"></div>
+      <div class="loading-bars">
+        <div class="bar-back">
+          <div class="bar-fill"></div>
         </div>
       </div>
+      <div class="preview-bottom" id="previewBottom">Some text at the bottom</div>
+      <div class="preview-icons">
+        <div class="preview-icon"></div>
+        <div class="preview-icon"></div>
+        <div class="preview-icon"></div>
+      </div>
     </div>
-
-    <div style="width:100%;display:flex;gap:8px;justify-content:space-between;align-items:center">
-      <h3 style="margin:8px 0 0;font-family: MinecraftTen, monospace">Scene Items</h3>
-      <div class="muted">First = back, last = front</div>
+    
+    <div class="form-group">
+      <label for="previewTitleInput">Title Text</label>
+      <input type="text" id="previewTitleInput" value="TITLE(?)">
     </div>
-
-    <div id="itemsList" class="items-list"></div>
-
-    <div class="export-row">
-      <button id="exportBtn" class="btn primary">Export JSON</button>
-      <button id="downloadBtn" class="btn">Download JSON</button>
-      <button id="copyBtn" class="btn">Copy JSON</button>
-      <div style="flex:1"></div>
-      <div class="muted">Export path: <code>textures/ui/&lt;name-without-.png&gt;</code></div>
+    
+    <div class="form-group">
+      <label for="previewBottomInput">Bottom Text</label>
+      <input type="text" id="previewBottomInput" value="Some text at the bottom">
     </div>
-
-    <div style="margin-top:12px;width:100%" class="export-area">
-      <textarea id="jsonOut" readonly placeholder="Exported JSON will appear here"></textarea>
+    
+    <div class="form-group">
+      <label for="waitDuration">Wait Duration (seconds)</label>
+      <input type="number" id="waitDuration" value="2" min="0.1" step="0.1">
+    </div>
+    
+    <div class="form-group">
+      <label for="barDuration">Loading Bar Duration (seconds)</label>
+      <input type="number" id="barDuration" value="2" min="0.1" step="0.1">
     </div>
   </div>
 
-  <!-- right properties -->
-  <div class="sidebar2">
-    <h3>Item Properties</h3>
-    <div class="muted" style="text-align:center;margin-bottom:8px">Click an item to edit</div>
-    <div class="muted" style="font-size:13px">Animation options: pick_axe_animation, portal_animation, spinner_animation, anim_realms_stories_icon</div>
-    <div style="height:12px"></div>
-    <div style="font-weight:bold;margin-bottom:8px">Items</div>
-    <div id="itemsListProps" class="items-list"></div>
+  <!-- Items & Export Panel -->
+  <div class="panel">
+    <h2 class="panel-title">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7,2A2,2 0 0,0 5,4V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V4A2,2 0 0,0 17,2H7M7,4H17V10H7V4M7,12H17V14H7V12M7,16H17V18H7V16Z"/>
+      </svg>
+      Items & Export
+    </h2>
+    
+    <div class="items-list" id="itemsList">
+      <!-- Items will be populated by JavaScript -->
+    </div>
+    
+    <div class="export-area">
+      <div class="btn-group">
+        <button id="exportBtn" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+          </svg>
+          Export JSON
+        </button>
+        <button id="downloadBtn" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+          </svg>
+          Download
+        </button>
+        <button id="copyBtn" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+          </svg>
+          Copy
+        </button>
+      </div>
+      
+      <textarea id="jsonOut" placeholder="Exported JSON will appear here"></textarea>
+    </div>
   </div>
+</div>
+
+<div id="notification" class="notification">Copied to clipboard!</div>
 
 <script>
-/* -------------------------
-   Configuration & textures
-   ------------------------- */
+// Available textures
 const availableTextures = [
-  "title.png","loading_bar_background.png","loading_bar_filler.png","grass_bar.png",
-  "mine_chop_dig_animation.png","icon_panda.png","loading_spin.png","realmsStoriesIconAnimated.png","worldsIcon.png",
-  "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png","language_glyph.png","lapis.png"
+  "title.png", "loading_bar_background.png", "loading_bar_filler.png", "grass_bar.png",
+  "mine_chop_dig_animation.png", "icon_panda.png", "loading_spin.png", "realmsStoriesIconAnimated.png", "worldsIcon.png",
+  "icon_unlocked.png", "icon_trending.png", "icon_trailer.png", "icon_trash.png", "language_glyph.png", "lapis.png"
 ];
 
+// Animation options
 const animationOptions = [
-  {value:"",label:"(none)"},
-  {value:"@hud.pick_axe_animation",label:"pick_axe_animation"},
-  {value:"@hud.portal_animation",label:"portal_animation"},
-  {value:"@hud.spinner_animation",label:"spinner_animation"},
-  {value:"@hud.anim_realms_stories_icon",label:"anim_realms_stories_icon"}
+  {value: "", label: "(none)"},
+  {value: "@hud.pick_axe_animation", label: "pick_axe_animation"},
+  {value: "@hud.portal_animation", label: "portal_animation"},
+  {value: "@hud.spinner_animation", label: "spinner_animation"},
+  {value: "@hud.anim_realms_stories_icon", label: "anim_realms_stories_icon"}
 ];
 
-/* -------------------------
-   Random gradient background not needed (we keep template gradient)
-   But allow optional background images if present */
-const backgrounds = ["image/dirt.png","image/stone.png","image/sky.png"];
-const randomBg = backgrounds[Math.floor(Math.random()*backgrounds.length)];
-// Optional: comment out if you prefer the solid gradient template background
-// document.body.style.backgroundImage = `url(${randomBg})`;
-
-/* -------------------------
-   DOM refs
-   ------------------------- */
+// DOM references
 const textureGrid = document.getElementById('textureGrid');
 const addSelectedBtn = document.getElementById('addSelectedBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const itemsList = document.getElementById('itemsList');
-const itemsListProps = document.getElementById('itemsListProps');
-const previewPanel = document.getElementById('previewPanel');
 const previewTitleInput = document.getElementById('previewTitleInput');
 const previewBottomInput = document.getElementById('previewBottomInput');
-const previewTitleEl = document.getElementById('previewTitle');
-const previewBottomEl = document.getElementById('previewBottom');
+const previewTitle = document.getElementById('previewTitle');
+const previewBottom = document.getElementById('previewBottom');
 const waitDurationInput = document.getElementById('waitDuration');
+const barDurationInput = document.getElementById('barDuration');
 const exportBtn = document.getElementById('exportBtn');
 const jsonOut = document.getElementById('jsonOut');
 const copyBtn = document.getElementById('copyBtn');
 const downloadBtn = document.getElementById('downloadBtn');
+const notification = document.getElementById('notification');
 
-const previewLogo = document.getElementById('previewLogo');
-const barBack = document.getElementById('barBack');
-const barFill = document.getElementById('barFill');
-const grassOverlay = document.getElementById('grassOverlay');
-const bottomLeftIcon = document.getElementById('bottomLeftIcon');
-const bottomLeftText = document.getElementById('bottomLeftText');
-const cornerIcons = document.getElementById('cornerIcons');
-const previewTopLeft = document.getElementById('previewTopLeft');
-
-/* -------------------------
-   Populate texture tiles
-   ------------------------- */
-let selectedTile = null;
-availableTextures.forEach(name=>{
-  const tile = document.createElement('div');
-  tile.className = 'texture-tile';
-  const img = document.createElement('img');
-  img.src = 'image/' + name;
-  img.alt = name;
-  tile.appendChild(img);
-  tile.title = name;
-  tile.onclick = () => {
-    document.querySelectorAll('.texture-tile').forEach(t=>t.style.outline='none');
-    tile.style.outline = '3px solid rgba(75,124,255,0.9)';
-    selectedTile = name;
-  };
-  textureGrid.appendChild(tile);
-});
-
-/* -------------------------
-   Scene items store
-   ------------------------- */
+// State
+let selectedTexture = null;
 let sceneItems = [];
 
-/* default UI items (logo, bars, icons) are handled in preview DOM directly.
-   sceneItems are extra overlay elements user can add, edit, reorder, and export.
-*/
-
-function addItemFromTexture(textureName){
-  const idBase = textureName.replace(/\.[^/.]+$/,'');
-  const id = idBase + "_" + (sceneItems.length+1);
-  const item = {
-    id,
-    type: "image",
-    texture: textureName,
-    size: [32,32],
-    offset: [0,0],
-    anchor_from: "center",
-    anchor_to: "center",
-    alpha: 1,
-    uv: ""
-  };
-  sceneItems.push(item);
-  renderItems();
-}
-
-addSelectedBtn.addEventListener('click', ()=>{
-  if(!selectedTile){ alert("Select a texture tile first."); return; }
-  addItemFromTexture(selectedTile);
-});
-
-clearAllBtn.addEventListener('click', ()=>{
-  if(!confirm("Clear all added items?")) return;
-  sceneItems = [];
-  renderItems();
-});
-
-/* -------------------------
-   Render items list (center) & props (right)
-   ------------------------- */
-function renderItems(){
-  itemsList.innerHTML = "";
-  itemsListProps.innerHTML = "";
-  sceneItems.forEach((it, idx)=>{
-    // center list visible thumbnail row
-    const row = document.createElement('div');
-    row.className = 'item-row';
-    row.dataset.index = idx;
-    const mini = document.createElement('div'); mini.className='mini';
-    const img = document.createElement('img'); img.src = 'image/' + it.texture; img.alt = it.texture;
-    mini.appendChild(img);
-    const meta = document.createElement('div'); meta.className='meta';
-    meta.innerHTML = `<div style="display:flex;gap:8px">
-      <input value="${it.id}" style="flex:1" />
-      <button class="btn small">Remove</button>
-    </div>`;
-    const idInput = meta.querySelector('input');
-    const removeBtn = meta.querySelector('button');
-    idInput.oninput = ()=>{ it.id = idInput.value.trim(); buildAndRenderPreview(); renderProps(); };
-    removeBtn.onclick = ()=>{ sceneItems.splice(idx,1); renderItems(); buildAndRenderPreview(); };
-
-    row.appendChild(mini); row.appendChild(meta);
-    itemsList.appendChild(row);
-
-    // right props editor
-    const r = document.createElement('div'); r.className='item-row';
-    const mini2 = document.createElement('div'); mini2.className='mini';
-    const img2 = document.createElement('img'); img2.src = 'image/' + it.texture;
-    mini2.appendChild(img2);
-
-    const props = document.createElement('div'); props.className='meta';
-    // fields
-    const texSel = document.createElement('select');
-    availableTextures.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; if(t===it.texture) o.selected=true; texSel.appendChild(o); });
-    texSel.onchange = ()=>{ it.texture = texSel.value; renderItems(); buildAndRenderPreview(); };
-
-    const typeSel = document.createElement('select');
-    ['image','panel'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; if(it.type===v) o.selected=true; typeSel.appendChild(o); });
-    typeSel.onchange = ()=>{ it.type = typeSel.value; buildAndRenderPreview(); };
-
-    const sizeW = document.createElement('input'); sizeW.type='number'; sizeW.value=it.size[0];
-    const sizeH = document.createElement('input'); sizeH.type='number'; sizeH.value=it.size[1];
-    sizeW.oninput = ()=>{ it.size[0]=Number(sizeW.value)||0; buildAndRenderPreview(); };
-    sizeH.oninput = ()=>{ it.size[1]=Number(sizeH.value)||0; buildAndRenderPreview(); };
-
-    const offX = document.createElement('input'); offX.type='number'; offX.value=it.offset[0];
-    const offY = document.createElement('input'); offY.type='number'; offY.value=it.offset[1];
-    offX.oninput = ()=>{ it.offset[0]=Number(offX.value)||0; buildAndRenderPreview(); };
-    offY.oninput = ()=>{ it.offset[1]=Number(offY.value)||0; buildAndRenderPreview(); };
-
-    const anchorFrom = document.createElement('select');
-    const anchorTo   = document.createElement('select');
-    const anchors = ['top_left','top_middle','top_right','left_middle','center','right_middle','bottom_left','bottom_middle','bottom_right'];
-    anchors.forEach(a=>{ const o1=document.createElement('option'); o1.value=a; o1.textContent=a; if(it.anchor_from===a) o1.selected=true; anchorFrom.appendChild(o1);
-                        const o2=document.createElement('option'); o2.value=a; o2.textContent=a; if(it.anchor_to===a) o2.selected=true; anchorTo.appendChild(o2);});
-    anchorFrom.onchange = ()=>{ it.anchor_from=anchorFrom.value; buildAndRenderPreview(); };
-    anchorTo.onchange = ()=>{ it.anchor_to=anchorTo.value; buildAndRenderPreview(); };
-
-    const alphaIn = document.createElement('input'); alphaIn.type='number'; alphaIn.step='0.05'; alphaIn.min='0'; alphaIn.max='1'; alphaIn.value=it.alpha;
-    alphaIn.oninput = ()=>{ it.alpha=Number(alphaIn.value)||0; buildAndRenderPreview(); };
-
-    const animSel = document.createElement('select');
-    animationOptions.forEach(opt=>{ const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; if(opt.value===it.uv) o.selected=true; animSel.appendChild(o);});
-    animSel.onchange = ()=>{ it.uv = animSel.value; buildAndRenderPreview(); };
-
-    const upBtn = document.createElement('button'); upBtn.className='btn small'; upBtn.textContent='↑';
-    const downBtn = document.createElement('button'); downBtn.className='btn small'; downBtn.textContent='↓';
-    upBtn.onclick = ()=>{ if(idx===0) return; [sceneItems[idx-1],sceneItems[idx]]=[sceneItems[idx],sceneItems[idx-1]]; renderItems(); buildAndRenderPreview(); };
-    downBtn.onclick = ()=>{ if(idx===sceneItems.length-1) return; [sceneItems[idx+1],sceneItems[idx]]=[sceneItems[idx],sceneItems[idx+1]]; renderItems(); buildAndRenderPreview(); };
-
-    // assemble props layout
-    props.appendChild(texSel);
-    props.appendChild(typeSel);
-    const sizeDiv = document.createElement('div'); sizeDiv.style.display='flex'; sizeDiv.style.gap='6px';
-    sizeDiv.appendChild(sizeW); sizeDiv.appendChild(sizeH); props.appendChild(sizeDiv);
-    const offDiv = document.createElement('div'); offDiv.style.display='flex'; offDiv.style.gap='6px';
-    offDiv.appendChild(offX); offDiv.appendChild(offY); props.appendChild(offDiv);
-    const ancDiv = document.createElement('div'); ancDiv.style.display='flex'; ancDiv.style.gap='6px';
-    ancDiv.appendChild(anchorFrom); ancDiv.appendChild(anchorTo); props.appendChild(ancDiv);
-    const animDiv = document.createElement('div'); animDiv.style.display='flex'; animDiv.style.gap='6px';
-    animDiv.appendChild(alphaIn); animDiv.appendChild(animSel); props.appendChild(animDiv);
-    const orderDiv = document.createElement('div'); orderDiv.style.display='flex'; orderDiv.style.justifyContent='flex-end'; orderDiv.style.gap='6px';
-    orderDiv.appendChild(upBtn); orderDiv.appendChild(downBtn); props.appendChild(orderDiv);
-
-    r.appendChild(mini2);
-    r.appendChild(props);
-    itemsListProps.appendChild(r);
-  });
-}
-
-/* -------------------------
-   Render preview (logo, bars, tip, plus user layers)
-   ------------------------- */
-function buildAndRenderPreview(){
-  // preview title & bottom
-  previewTopLeft.textContent = previewTitleInput.value || "";
-  previewBottomEl.textContent = previewBottomInput.value || "";
-  bottomLeftText.textContent = "LOADING...";
-
-  // bar fill width from a dummy percent or single default (we keep it editable via first user item if needed)
-  // find if an item with id like 'loading_bar_filler' exists, otherwise keep default 30%
-  const fillerOverride = sceneItems.find(it=>it.texture && it.texture.includes('loading_bar_filler'));
-  const percent = fillerOverride ? Math.min(100, Math.max(0, (fillerOverride.size[0]||30))) : 30;
-  barFill.style.width = percent + '%';
-
-  // update bar backgrounds if textures exist
-  barBack.style.backgroundImage = `url('image/loading_bar_background.png')`;
-  barFill.style.backgroundImage = `url('image/loading_bar_filler.png')`;
-  grassOverlay.style.backgroundImage = `url('image/grass_bar.png')`;
-
-  // corner icons (first three sceneItems used for corner icons if user assigned)
-  const cornerImgs = cornerIcons.querySelectorAll('img');
-  cornerImgs.forEach((img, i)=> {
-    const si = sceneItems[i];
-    if(si && si.texture){
-      img.src = 'image/' + si.texture;
-      img.style.width = si.size[0] + 'px';
-      img.style.height = si.size[1] + 'px';
-      img.style.opacity = si.alpha;
-    } else {
-      // fallback default icons
-      const defaults = ['mine_chop_dig_animation.png','realmsStoriesIconAnimated.png','loading_spin.png'];
-      img.src = 'image/' + defaults[i];
-      img.style.width = '28px'; img.style.height='28px'; img.style.opacity = 1;
-    }
-  });
-
-  // bottom-left icon (use next scene item if present)
-  const bl = sceneItems[3];
-  if(bl && bl.texture){
-    bottomLeftIcon.src = 'image/' + bl.texture;
-    bottomLeftIcon.style.width = bl.size[0] + 'px';
-    bottomLeftIcon.style.height = bl.size[1] + 'px';
-    bottomLeftIcon.style.opacity = bl.alpha;
-  } else {
-    bottomLeftIcon.src = 'image/worldsIcon.png';
-    bottomLeftIcon.style.width = '36px'; bottomLeftIcon.style.height='36px';
-    bottomLeftIcon.style.opacity = 1;
-  }
-
-  // render additional overlay layers (starting after those used for corners)
-  // Remove existing overlay nodes
-  const existing = previewPanel.querySelectorAll('.user-layer');
-  existing.forEach(n=>n.remove());
-
-  // for simplicity, place remaining sceneItems centered with offset; handles anchor_to roughly
-  sceneItems.forEach((it, idx) => {
-    // skip first 4 used for corners/left icon if used
-    if(idx <= 3) return;
-    const node = document.createElement('div');
-    node.className = 'user-layer';
-    node.style.position = 'absolute';
-    node.style.left = '50%';
-    node.style.top = '50%';
-    node.style.transform = 'translate(-50%,-50%)';
-    node.style.pointerEvents = 'none';
-    node.style.opacity = it.alpha == null ? 1 : it.alpha;
-
+// Initialize the texture grid
+function initTextureGrid() {
+  availableTextures.forEach(texture => {
+    const textureItem = document.createElement('div');
+    textureItem.className = 'texture-item';
+    textureItem.dataset.texture = texture;
+    
     const img = document.createElement('img');
-    img.src = 'image/' + it.texture;
-    img.style.width = (it.size[0] || 32) + 'px';
-    img.style.height = (it.size[1] || 32) + 'px';
-    img.style.imageRendering = 'pixelated';
-    // apply offset
-    const offX = (it.offset && it.offset[0]) ? it.offset[0] : 0;
-    const offY = (it.offset && it.offset[1]) ? it.offset[1] : 0;
-    node.style.left = `calc(50% + ${offX}px)`;
-    node.style.top = `calc(50% + ${offY}px)`;
-    node.appendChild(img);
-    previewPanel.appendChild(node);
+    // In a real implementation, this would point to actual texture files
+    img.src = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIj48cmVjdCB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIGZpbGw9IiM4QzUyRkYiIG9wYWNpdHk9IjAuMyIvPjx0ZXh0IHg9IjI1IiB5PSIyNSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjgiIGZpbGw9IiNFRiI+LnBuZzwvdGV4dD48L3N2Zz4=`;
+    img.alt = texture;
+    
+    const textureName = document.createElement('div');
+    textureName.className = 'texture-name';
+    textureName.textContent = texture;
+    
+    textureItem.appendChild(img);
+    textureItem.appendChild(textureName);
+    
+    textureItem.addEventListener('click', () => {
+      document.querySelectorAll('.texture-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      textureItem.classList.add('selected');
+      selectedTexture = texture;
+    });
+    
+    textureGrid.appendChild(textureItem);
   });
 }
 
-/* -------------------------
-   JSON export builder
-   ------------------------- */
-function baseAnimationsObject(){
-  return {
-    "loading_animation_alpha_out": {
-      "anim_type": "alpha",
-      "easing": "in_quart",
-      "duration": 0.5,
-      "from": 1,
-      "to": 0,
-      "destroy_at_end": "chat_grid_item"
-    },
-    "loading_animation_wait": {
-      "anim_type": "wait",
-      "duration": "$loading_animation_wait_duration",
-      "next": "@hud.loading_animation_alpha_out"
-    },
-    "loading_animation_alpha_in": {
-      "anim_type": "alpha",
-      "easing": "out_cubic",
-      "duration": 0.5,
-      "from": 0,
-      "to": 1,
-      "next": "@hud.loading_animation_wait"
-    },
-    "anim_loading_bar": {
-      "anim_type": "size",
-      "easing": "in_out_circ",
-      "duration": "$loading_bar_duration",
-      "from": [0, 16],
-      "to": [200, 16]
-    },
-    "anim_loading_bar_again": {
-      "anim_type": "size",
-      "easing": "linear",
-      "duration": "$loading_bar_duration",
-      "from": [0, 16],
-      "to": [200, 16]
-    },
-    "pick_axe_animation": {
-      "anim_type": "flip_book",
-      "initial_uv": [0, 0],
-      "frame_count": 91,
-      "frame_step": 10,
-      "fps": 30,
-      "reversible": false,
-      "easing": "linear"
-    },
-    "portal_animation": {
-      "anim_type": "flip_book",
-      "initial_uv": [0, 0],
-      "frame_count": 16,
-      "frame_step": 19,
-      "fps": 10,
-      "reversible": true,
-      "easing": "linear"
-    },
-    "spinner_animation": {
-      "anim_type": "flip_book",
-      "initial_uv": [0, 0],
-      "frame_count": 10,
-      "frame_step": 7,
-      "fps": 10
-    },
-    "anim_realms_stories_icon": {
-      "anim_type": "flip_book",
-      "initial_uv": [0, 0],
-      "frame_count": 13,
-      "fps": 8,
-      "looping": false,
-      "easing": "linear",
-      "wait_until_rendered_to_play": true
-    }
+// Add a new item to the scene
+function addItemToScene() {
+  if (!selectedTexture) {
+    showNotification('Please select a texture first');
+    return;
+  }
+  
+  const newItem = {
+    id: `item_${sceneItems.length + 1}`,
+    texture: selectedTexture,
+    size: [32, 32],
+    position: [0, 0],
+    animation: ''
   };
+  
+  sceneItems.push(newItem);
+  renderItemsList();
 }
 
-function toExportTexturePath(filename){
-  return 'textures/ui/' + filename.replace(/\.png$/i, '');
+// Clear all items from the scene
+function clearAllItems() {
+  if (sceneItems.length === 0) return;
+  if (!confirm('Are you sure you want to clear all items?')) return;
+  
+  sceneItems = [];
+  renderItemsList();
 }
 
-function buildControlsFromScene(){
-  const controls = {};
-  sceneItems.forEach((it, idx)=>{
-    let id = (it.id && String(it.id).trim()) || ('item_' + (idx+1));
-    id = id.replace(/\s+/g,'_');
-    const base = {
-      "type": it.type === 'panel' ? 'panel' : 'image',
-      "texture": toExportTexturePath(it.texture),
-      "size": [ Number(it.size[0]||0), Number(it.size[1]||0) ]
-    };
-    if(it.offset && (Number(it.offset[0]) || Number(it.offset[1]))){
-      base["offset"] = [ Number(it.offset[0]||0), Number(it.offset[1]||0) ];
-    }
-    if(it.alpha != null && Number(it.alpha) !== 1){
-      base["alpha"] = Number(it.alpha);
-    }
-    if(it.anchor_from) base["anchor_from"] = it.anchor_from;
-    if(it.anchor_to) base["anchor_to"] = it.anchor_to;
-    if(it.uv) base["uv"] = it.uv;
-    controls[id] = base;
-  });
-  return controls;
-}
-
-function buildExport(){
-  const baseAnims = baseAnimationsObject();
-  const controlsObj = buildControlsFromScene();
-  const controlsArray = Object.keys(controlsObj).map(k => { const o={}; o[k]=controlsObj[k]; return o; });
-
-  const loadingAnimation = {
-    "$loading_animation_wait_duration": Number(waitDurationInput.value) || 2,
-    "$loading_bar_duration": "$loading_animation_wait_duration",
-    "type": "panel",
-    "size": ["100%","100%"],
-    "layer": 100,
-    "controls": [
-      {
-        "background": {
-          "type":"custom",
-          "renderer":"gradient_renderer",
-          "size":["100%","100%"],
-          "anims":["@hud.loading_animation_alpha_in"],
-          "propagate_alpha": true,
-          "color1":[0,0,0],
-          "color2":[0.11,0.01,0.2],
-          "controls": [
-            {
-              "logo": {
-                "type":"image",
-                "texture":"textures/ui/title",
-                "size":[420,105],
-                "offset":[0,"-25%"]
-              }
-            },
-            {
-              "loading_bar_background": {
-                "type":"image",
-                "texture":"textures/ui/loading_bar_background",
-                "size":[200,16],
-                "offset":[0,"20%"],
-                "controls":[
-                  {
-                    "loading_bar": {
-                      "type":"image",
-                      "texture":"textures/ui/loading_bar_filler",
-                      "size":[200,16],
-                      "anchor_from":"left_middle",
-                      "anchor_to":"left_middle",
-                      "anims":["@hud.anim_loading_bar"]
-                    }
-                  }
-                ]
-              }
-            },
-            // user controls inserted here
-            ...controlsArray,
-            {
-              "tip_maybe": {
-                "type":"label",
-                "text": previewBottomInput.value || "",
-                "anchor_from":"bottom_middle",
-                "anchor_to":"bottom_middle",
-                "offset":[0,-15]
-              }
-            },
-            {
-              "maybe_title": {
-                "type":"label",
-                "text": previewTitleInput.value || "",
-                "font_type":"MinecraftTen",
-                "font_scale_factor":1.5,
-                "anchor_from":"top_left",
-                "anchor_to":"top_left",
-                "offset":[10,10]
-              }
-            }
-          ]
-        }
+// Render the items list
+function renderItemsList() {
+  itemsList.innerHTML = '';
+  
+  if (sceneItems.length === 0) {
+    itemsList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No items added yet</p>';
+    return;
+  }
+  
+  sceneItems.forEach((item, index) => {
+    const itemCard = document.createElement('div');
+    itemCard.className = 'item-card';
+    
+    const itemHeader = document.createElement('div');
+    itemHeader.className = 'item-header';
+    
+    const itemThumb = document.createElement('div');
+    itemThumb.className = 'item-thumb';
+    
+    const thumbImg = document.createElement('img');
+    thumbImg.src = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiM4QzUyRkYiIG9wYWNpdHk9IjAuMyIvPjx0ZXh0IHg9IjIwIiB5PSIyMCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjgiIGZpbGw9IiNFRiI+SW1hZ2U8L3RleHQ+PC9zdmc+`;
+    thumbImg.alt = item.texture;
+    
+    itemThumb.appendChild(thumbImg);
+    
+    const itemTitle = document.createElement('div');
+    itemTitle.textContent = item.id;
+    itemTitle.style.fontWeight = 'bold';
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-secondary btn-sm';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', () => {
+      sceneItems.splice(index, 1);
+      renderItemsList();
+    });
+    
+    itemHeader.appendChild(itemThumb);
+    itemHeader.appendChild(itemTitle);
+    itemHeader.appendChild(removeBtn);
+    
+    const itemContent = document.createElement('div');
+    itemContent.className = 'item-content';
+    
+    const sizeLabel = document.createElement('label');
+    sizeLabel.textContent = 'Size:';
+    
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'text';
+    sizeInput.value = `${item.size[0]}x${item.size[1]}`;
+    sizeInput.addEventListener('change', (e) => {
+      const sizes = e.target.value.split('x');
+      if (sizes.length === 2) {
+        item.size[0] = parseInt(sizes[0]) || 32;
+        item.size[1] = parseInt(sizes[1]) || 32;
       }
-    ]
-  };
-
-  const finalJSON = {
-    "hud": baseAnims,
-    "loading_animation": loadingAnimation
-  };
-  return finalJSON;
+    });
+    
+    const animLabel = document.createElement('label');
+    animLabel.textContent = 'Animation:';
+    
+    const animSelect = document.createElement('select');
+    animationOptions.forEach(option => {
+      const optElement = document.createElement('option');
+      optElement.value = option.value;
+      optElement.textContent = option.label;
+      if (option.value === item.animation) {
+        optElement.selected = true;
+      }
+      animSelect.appendChild(optElement);
+    });
+    animSelect.addEventListener('change', (e) => {
+      item.animation = e.target.value;
+    });
+    
+    itemContent.appendChild(sizeLabel);
+    itemContent.appendChild(sizeInput);
+    itemContent.appendChild(animLabel);
+    itemContent.appendChild(animSelect);
+    
+    itemCard.appendChild(itemHeader);
+    itemCard.appendChild(itemContent);
+    
+    itemsList.appendChild(itemCard);
+  });
 }
 
-/* -------------------------
-   Export / copy / download handlers
-   ------------------------- */
-exportBtn.addEventListener('click', ()=>{
-  const obj = buildExport();
-  jsonOut.value = JSON.stringify(obj,null,2);
-});
+// Update the preview
+function updatePreview() {
+  previewTitle.textContent = previewTitleInput.value;
+  previewBottom.textContent = previewBottomInput.value;
+}
 
-copyBtn.addEventListener('click', ()=>{
-  if(!jsonOut.value){ alert('Export JSON first'); return; }
+// Generate JSON configuration
+function generateJSON() {
+  const config = {
+    "$loading_animation_wait_duration": parseFloat(waitDurationInput.value) || 2,
+    "$loading_bar_duration": parseFloat(barDurationInput.value) || 2,
+    "tip_maybe": {
+      "text": previewBottomInput.value.toLowerCase() || "some text at the bottom"
+    },
+    "maybe_title": {
+      "text": previewTitleInput.value || "Title(?)"
+    },
+    "items": sceneItems.map(item => ({
+      "id": item.id,
+      "texture": `textures/ui/${item.texture.replace('.png', '')}`,
+      "size": item.size,
+      "animation": item.animation
+    }))
+  };
+  
+  jsonOut.value = JSON.stringify(config, null, 2);
+}
+
+// Copy JSON to clipboard
+function copyToClipboard() {
+  if (!jsonOut.value) {
+    showNotification('Please generate JSON first');
+    return;
+  }
+  
   jsonOut.select();
   document.execCommand('copy');
-  alert('Copied JSON to clipboard');
-});
+  showNotification('Copied to clipboard!');
+}
 
-downloadBtn.addEventListener('click', ()=>{
-  if(!jsonOut.value){ alert('Export JSON first'); return; }
-  const blob = new Blob([jsonOut.value], {type:'application/json'});
+// Download JSON as file
+function downloadJSON() {
+  if (!jsonOut.value) {
+    showNotification('Please generate JSON first');
+    return;
+  }
+  
+  const blob = new Blob([jsonOut.value], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'loading_config.json';
+  a.download = 'minecraft_loading_config.json';
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
-});
-
-/* -------------------------
-   Live preview wiring
-   ------------------------- */
-previewTitleInput.addEventListener('input', buildAndRenderPreview);
-previewBottomInput.addEventListener('input', buildAndRenderPreview);
-waitDurationInput.addEventListener('input', ()=>{ /* noop for preview */ });
-
-function renderItemsInitial(){
-  // initial empty render
-  renderItems();
-  buildAndRenderPreview();
 }
 
-renderItemsInitial();
+// Show notification
+function showNotification(message) {
+  notification.textContent = message;
+  notification.classList.add('show');
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
+}
+
+// Initialize the application
+function init() {
+  initTextureGrid();
+  renderItemsList();
+  
+  // Event listeners
+  addSelectedBtn.addEventListener('click', addItemToScene);
+  clearAllBtn.addEventListener('click', clearAllItems);
+  previewTitleInput.addEventListener('input', updatePreview);
+  previewBottomInput.addEventListener('input', updatePreview);
+  exportBtn.addEventListener('click', generateJSON);
+  copyBtn.addEventListener('click', copyToClipboard);
+  downloadBtn.addEventListener('click', downloadJSON);
+  
+  // Initial preview update
+  updatePreview();
+}
+
+// Start the application
+init();
 </script>
 </body>
 </html>

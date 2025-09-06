@@ -1,216 +1,761 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Minecraft Configurator</title>
+<meta charset="utf-8" />
+<title>Minecraft Loading Screen Editor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --panel-w: 420px;
+    --preview-w: 520px;
+  }
+  html,body{height:100%;margin:0;font-family:Arial, Helvetica, sans-serif;background:#111;color:#111}
+  /* make background fullscreen and pixelated */
+  body{
+    background-position:center;
+    background-size:cover;
+    background-attachment:fixed;
+    image-rendering:pixelated;
+    display:flex;
+    gap:20px;
+    padding:24px;
+    box-sizing:border-box;
+    align-items:flex-start;
+    justify-content:center;
+  }
 
-  <style>
-    /* Import Minecraft font */
-    @font-face {
-      font-family: "Minecraft";
-      src: url("fonts/Minecraft.ttf") format("truetype");
-    }
+  /* left: texture library */
+  .sidebar{
+    width:var(--panel-w);
+    max-height:calc(100vh - 48px);
+    overflow:auto;
+    background:rgba(255,255,255,0.92);
+    border-radius:8px;
+    padding:14px;
+    box-sizing:border-box;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .sidebar h3{margin:6px 0 12px;font-size:18px;text-align:center}
+  .texture-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+  }
+  .texture-tile{
+    width:56px;height:56px;border:1px solid #bbb;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    padding:4px;box-sizing:border-box;border-radius:4px;
+  }
+  .texture-tile img{max-width:100%;max-height:100%;image-rendering:pixelated}
 
-    body {
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      font-family: "Minecraft", monospace;
-      background-color: #000;
-      background-position: center;
-      background-attachment: fixed;
-      background-size: cover;
-      image-rendering: pixelated; /* Keep blocky pixel look */
-    }
+  .controls-row{display:flex;gap:8px;margin-top:12px;justify-content:center}
+  .btn{padding:8px 12px;border-radius:6px;border:1px solid #888;background:#eee;cursor:pointer}
+  .btn.primary{background:#4b7cff;color:#fff;border-color:#2d5fe6}
+  .small{padding:6px 8px;font-size:13px}
 
-    .container {
-      background: rgba(30, 30, 30, 0.85);
-      padding: 20px;
-      border-radius: 10px;
-      display: inline-block;
-      margin-top: 20px;
-      color: white;
-    }
+  /* center preview & editor */
+  .main{
+    width:var(--preview-w);
+    max-height:calc(100vh - 48px);
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+  }
 
-    h1, h2, label, .preview {
-      font-family: "Minecraft", monospace;
-    }
+  .header{
+    background:rgba(255,255,255,0.95);
+    width:100%;
+    padding:12px;border-radius:8px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.15);
+  }
+  .preview-wrap{
+    width:100%;
+    display:flex;justify-content:center;
+  }
+  .preview{
+    width:100%;
+    max-width:480px;
+    height:260px;
+    background:rgba(20,20,20,0.85);
+    border-radius:6px;border:2px solid #777;
+    position:relative;
+    overflow:hidden;
+    box-sizing:border-box;
+    color:#ddd;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+  }
+  .preview .title{
+    font-weight:bold;
+    margin-top:8px;
+    font-size:20px;
+    text-shadow:0 1px 0 rgba(0,0,0,0.7);
+    pointer-events:none;
+  }
+  .preview .bottom{
+    margin-top:8px;font-size:14px;pointer-events:none;color:#cfcfcf;
+  }
+  /* Each added element is absolutely positioned inside .preview */
+  .preview .layered{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none;
+  }
+  .preview .layered img{image-rendering:pixelated;display:block;pointer-events:none}
 
-    input {
-      padding: 5px;
-      width: 300px;
-      margin: 8px 0;
-      border: 2px solid #555;
-      border-radius: 4px;
-      font-family: Arial, sans-serif; /* Inputs readable */
-    }
+  /* right side: items list and properties */
+  .sidebar2{
+    width:var(--panel-w);
+    max-height:calc(100vh - 48px);
+    overflow:auto;
+    background:rgba(255,255,255,0.92);
+    border-radius:8px;
+    padding:14px;
+    box-sizing:border-box;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .sidebar2 h3{text-align:center;margin:6px 0 12px}
+  .items-list{display:flex;flex-direction:column;gap:8px}
+  .item-row{
+    border:1px solid #cfcfcf;padding:8px;border-radius:6px;background:#fff;display:flex;gap:8px;align-items:center;
+  }
+  .item-row .mini{
+    width:44px;height:44px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;background:#fafafa;
+  }
+  .item-row .mini img{max-width:100%;max-height:100%;image-rendering:pixelated}
+  .item-row .meta{flex:1;display:flex;flex-direction:column;gap:6px}
+  .item-row label{font-size:12px;color:#333}
+  .item-row input, .item-row select{padding:6px;border:1px solid #bbb;border-radius:4px;font-size:13px;width:100%;box-sizing:border-box}
 
-    .preview {
-      margin: 20px auto;
-      padding: 10px;
-      border: 2px solid #555;
-      width: 400px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 6px;
-      color: #ccc;
-    }
+  .props-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}
 
-    .preview img {
-      width: 32px;
-      height: 32px;
-      vertical-align: middle;
-      image-rendering: pixelated;
-    }
+  /* export area */
+  .export-area{width:100%;background:#fff;padding:10px;border-radius:6px;border:1px solid #ddd}
+  textarea#jsonOut{width:100%;height:240px;box-sizing:border-box;padding:10px;font-family:monospace;font-size:13px}
 
-    .icon-grid {
-      display: grid;
-      grid-template-columns: repeat(9, 40px);
-      grid-gap: 5px;
-      justify-content: center;
-      margin-top: 20px;
-    }
+  /* small helpers */
+  .muted{font-size:12px;color:#666}
+  .center{display:flex;justify-content:center;align-items:center}
 
-    .slot {
-      width: 40px;
-      height: 40px;
-      border: 1px solid #777;
-      background: rgba(50, 50, 50, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .slot img {
-      max-width: 32px;
-      max-height: 32px;
-      image-rendering: pixelated;
-    }
-
-    .slot.selected {
-      border: 2px solid yellow;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-family: "Minecraft", monospace;
-      font-size: 16px;
-      cursor: pointer;
-      background: #6a0dad;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-
-    button:hover {
-      background: #8a2be2;
-    }
-  </style>
+  /* responsive */
+  @media (max-width:1100px){
+    body{flex-direction:column;align-items:stretch;padding:12px}
+    .sidebar,.sidebar2,.main{width:auto}
+    .preview{height:320px}
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Minecraft Configurator</h1>
 
-    <label>Wait Duration (seconds):</label>
-    <input id="waitDuration" type="number" value="2">
+  <!-- left: available textures -->
+  <div class="sidebar">
+    <h3>Available Textures (image/)</h3>
+    <div class="muted center">Click a tile to add it to the scene</div>
+    <div id="textureGrid" class="texture-grid" style="margin-top:12px"></div>
 
-    <label>Bottom Label:</label>
-    <input id="bottomText" type="text" value="Some text at the bottom" oninput="updatePreview()">
-
-    <label>Title Text:</label>
-    <input id="titleText" type="text" value="Title(?)" oninput="updatePreview()">
-
-    <div class="preview">
-      <img id="previewIcon" src="image/mine_chop_dig_animation.png" alt="">
-      <span id="previewTitle">Title(?)</span>
-      <div id="previewBottom">Some text at the bottom</div>
+    <div class="controls-row">
+      <button id="addSelectedBtn" class="btn primary small">Add Selected</button>
+      <button id="clearAllBtn" class="btn small">Clear All</button>
     </div>
 
-    <h2>Pick an Icon</h2>
-    <div id="iconSlots" class="icon-grid"></div>
-
-    <button onclick="exportConfig()">Export Config</button>
+    <div style="margin-top:12px" class="muted center">Tip: give items unique IDs (no spaces) for export.</div>
   </div>
 
-  <script>
-    // Random Minecraft backgrounds
-    const backgrounds = ["image/dirt.png", "image/stone.png", "image/sky.png"];
-    const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    document.body.style.backgroundImage = `url(${randomBg})`;
+  <!-- center: preview & export -->
+  <div class="main">
+    <div class="header">
+      <div style="font-size:20px;font-weight:700">Minecraft Loading Editor</div>
+      <div class="muted" style="margin-top:6px">Add textures, edit properties, preview & export JSON</div>
+    </div>
 
-    const textures = [
-      "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
-      "language_glyph.png","lapis.png","lan_icon.png","invite_base.png","icon_summer.png",
-      "icon_staffpicks.png","icon_map.png","icon_llama.png","icon_fall.png","icon_crafting.png",
-      "icon_cookie.png","icon_carrot.png","icon_cake.png","icon_bookshelf.png","icon_book_writable.png",
-      "icon_blackfriday.png","icon_bell.png","icon_balloon.png","icon_armor.png",
-      "hunger_background.png","hunger_effect.png","hunger_blink.png",
-      "loading_spin.png","realms_plus_hover.png","realmsStoriesIconAnimated.png","icon_panda.png"
-    ];
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;width:100%">
+      <div style="display:flex;flex-direction:column;gap:6px;width:260px">
+        <label class="muted">Wait duration (seconds)</label>
+        <input id="waitDuration" type="number" value="2" />
+        <label class="muted">Preview title</label>
+        <input id="previewTitleInput" type="text" value="Title(?)" />
+        <label class="muted">Preview bottom text</label>
+        <input id="previewBottomInput" type="text" value="Some text at the bottom" />
+      </div>
+      <div class="preview-wrap">
+        <div class="preview" id="previewPanel">
+          <!-- layered elements will be appended here -->
+          <div class="title" id="previewTitle">Title(?)</div>
+          <div class="bottom" id="previewBottom">Some text at the bottom</div>
+        </div>
+      </div>
+    </div>
 
-    let selectedTexture = "mine_chop_dig_animation.png";
+    <div style="width:100%;display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <h3 style="margin:8px 0 0">Scene Items</h3>
+      <div class="muted">Order = render order (first = back)</div>
+    </div>
 
-    const slots = document.getElementById("iconSlots");
-    const totalSlots = 54;
+    <div id="itemsList" class="items-list"></div>
 
-    for (let i = 0; i < totalSlots; i++) {
-      const slot = document.createElement("div");
-      slot.className = "slot";
+    <div style="width:100%;display:flex;gap:8px;margin-top:10px;align-items:center">
+      <button id="exportBtn" class="btn primary">Export JSON</button>
+      <button id="downloadBtn" class="btn">Download JSON</button>
+      <button id="copyBtn" class="btn">Copy JSON</button>
+      <div style="flex:1"></div>
+      <div class="muted">Export path uses <code>textures/ui/&lt;name-without-.png&gt;</code></div>
+    </div>
 
-      if (i < textures.length) {
-        const img = document.createElement("img");
-        img.src = "image/" + textures[i];
-        slot.appendChild(img);
+    <div style="margin-top:12px;width:100%" class="export-area">
+      <textarea id="jsonOut" readonly placeholder="Exported JSON will appear here"></textarea>
+    </div>
+  </div>
 
-        slot.onclick = () => {
-          document.querySelectorAll(".slot").forEach(s => s.classList.remove("selected"));
-          slot.classList.add("selected");
-          selectedTexture = textures[i];
-          document.getElementById("previewIcon").src = "image/" + selectedTexture;
-        };
-      }
+  <!-- right: list of available controls with properties -->
+  <div class="sidebar2">
+    <h3>Item Properties</h3>
+    <div class="muted center">Click an item on the right to edit its properties</div>
+    <div style="height:8px"></div>
+    <div style="font-size:13px" class="muted">Anchors: typical anchors used in your original json (top_left, top_right, bottom_middle, left_middle, right_middle)</div>
+    <div style="height:12px"></div>
+    <div style="font-weight:bold;margin-bottom:8px">Animation mapping (for animated textures)</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div class="muted">If you select an animation for an item, the exported JSON will include a <code>uv</code> reference to that animation (eg <code>@hud.pick_axe_animation</code>).</div>
+      <ul style="margin:6px 0 0 18px">
+        <li>pick_axe_animation</li>
+        <li>portal_animation</li>
+        <li>spinner_animation</li>
+        <li>anim_realms_stories_icon</li>
+      </ul>
+    </div>
+  </div>
 
-      slots.appendChild(slot);
+<script>
+/* ---------------------------
+   Config / available textures
+   --------------------------- */
+const availableTextures = [
+  "mine_chop_dig_animation.png","icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
+  "language_glyph.png","lapis.png","lan_icon.png","invite_base.png","icon_summer.png",
+  "icon_staffpicks.png","icon_map.png","icon_llama.png","icon_fall.png","icon_crafting.png",
+  "icon_cookie.png","icon_carrot.png","icon_cake.png","icon_bookshelf.png","icon_book_writable.png",
+  "icon_blackfriday.png","icon_bell.png","icon_balloon.png","icon_armor.png",
+  "hunger_background.png","hunger_effect.png","hunger_blink.png",
+  "loading_spin.png","realms_plus_hover.png","realmsStoriesIconAnimated.png","icon_panda.png","worldsIcon.png",
+  "loading_bar_background.png","loading_bar_filler.png","another_grass.png","grass_bar.png","mine_chop_dig_animation.png"
+];
+
+// animations that can be attached to an item (these names will become uv refs)
+const animationOptions = [
+  {value:"",label:"(none)"},
+  {value:"@hud.pick_axe_animation",label:"pick_axe_animation"},
+  {value:"@hud.portal_animation",label:"portal_animation"},
+  {value:"@hud.spinner_animation",label:"spinner_animation"},
+  {value:"@hud.anim_realms_stories_icon",label:"anim_realms_stories_icon"}
+];
+
+/* ---------------------------
+   Random fullscreen background
+   --------------------------- */
+const backgrounds = ["image/dirt.png","image/stone.png","image/sky.png"];
+const randomBg = backgrounds[Math.floor(Math.random()*backgrounds.length)];
+document.body.style.background = `url(${randomBg}) no-repeat center center fixed`;
+document.body.style.backgroundSize = "cover";
+document.body.style.imageRendering = "pixelated";
+
+/* ---------------------------
+   DOM references
+   --------------------------- */
+const textureGrid = document.getElementById('textureGrid');
+const addSelectedBtn = document.getElementById('addSelectedBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const itemsList = document.getElementById('itemsList');
+const previewPanel = document.getElementById('previewPanel');
+const previewTitleInput = document.getElementById('previewTitleInput');
+const previewBottomInput = document.getElementById('previewBottomInput');
+const previewTitleEl = document.getElementById('previewTitle');
+const previewBottomEl = document.getElementById('previewBottom');
+const waitDurationInput = document.getElementById('waitDuration');
+const exportBtn = document.getElementById('exportBtn');
+const jsonOut = document.getElementById('jsonOut');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+/* ---------------------------
+   Build texture grid
+   --------------------------- */
+let selectedTile = null;
+availableTextures.forEach(name=>{
+  const tile = document.createElement('div');
+  tile.className = 'texture-tile';
+  const img = document.createElement('img');
+  img.src = 'image/' + name;
+  img.alt = name;
+  tile.appendChild(img);
+  tile.title = name;
+  tile.onclick = () => {
+    // mark selected in UI
+    document.querySelectorAll('.texture-tile').forEach(t=>t.style.outline='none');
+    tile.style.outline = '3px solid #2d6cff';
+    selectedTile = name;
+  };
+  textureGrid.appendChild(tile);
+});
+
+/* ---------------------------
+   Scene items storage
+   --------------------------- */
+let sceneItems = []; // array of item objects in order
+
+function addItemFromTexture(textureName){
+  // default id: textureName without extension + index
+  const idBase = textureName.replace(/\.[^/.]+$/, "");
+  const id = idBase + "_" + (sceneItems.length+1);
+  const item = {
+    id,
+    type: "image",
+    texture: textureName,
+    size: [30,30],
+    offset: [0,0],
+    anchor_from: "center",
+    anchor_to: "center",
+    alpha: 1,
+    uv: "" // optional animation UV ref
+  };
+  sceneItems.push(item);
+  renderItems();
+}
+
+addSelectedBtn.addEventListener('click', ()=>{
+  if(!selectedTile){
+    alert("Select a texture tile first (left panel).");
+    return;
+  }
+  addItemFromTexture(selectedTile);
+});
+
+clearAllBtn.addEventListener('click', ()=>{
+  if(!confirm("Clear all scene items?")) return;
+  sceneItems = [];
+  renderItems();
+  renderPreview();
+});
+
+/* ---------------------------
+   Render items list (right) and wire editing
+   --------------------------- */
+function renderItems(){
+  itemsList.innerHTML = "";
+  sceneItems.forEach((it, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.dataset.index = idx;
+
+    const mini = document.createElement('div'); mini.className='mini';
+    const img = document.createElement('img'); img.src = 'image/' + it.texture; img.alt = it.texture;
+    mini.appendChild(img);
+
+    const meta = document.createElement('div'); meta.className='meta';
+
+    // first row: id and remove
+    const topRow = document.createElement('div'); topRow.style.display='flex'; topRow.style.gap='8px';
+    const idInput = document.createElement('input'); idInput.value=it.id; idInput.style.width='60%';
+    idInput.oninput = () => { it.id = idInput.value.trim(); renderPreview(); };
+
+    const removeBtn = document.createElement('button'); removeBtn.className='btn small'; removeBtn.textContent='Remove';
+    removeBtn.onclick = () => { sceneItems.splice(idx,1); renderItems(); renderPreview(); };
+
+    topRow.appendChild(idInput); topRow.appendChild(removeBtn);
+
+    // second row: texture & type
+    const texRow = document.createElement('div'); texRow.className='props-grid';
+    const texSelect = document.createElement('select');
+    availableTextures.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; if(t===it.texture) o.selected=true; texSelect.appendChild(o); });
+    texSelect.onchange = ()=>{ it.texture = texSelect.value; renderPreview(); };
+
+    const typeSelect = document.createElement('select');
+    ['image','panel'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; if(it.type===v) o.selected=true; typeSelect.appendChild(o); });
+    typeSelect.onchange = ()=>{ it.type = typeSelect.value; renderPreview(); };
+
+    texRow.appendChild(texSelect); texRow.appendChild(typeSelect);
+
+    // third row size & alpha
+    const sizeRow = document.createElement('div'); sizeRow.className='props-grid';
+    const wIn = document.createElement('input'); wIn.type='number'; wIn.value=it.size[0]; wIn.min=0;
+    const hIn = document.createElement('input'); hIn.type='number'; hIn.value=it.size[1]; hIn.min=0;
+    wIn.oninput = ()=>{ it.size[0]=parseInt(wIn.value)||0; renderPreview(); };
+    hIn.oninput = ()=>{ it.size[1]=parseInt(hIn.value)||0; renderPreview(); };
+    sizeRow.appendChild(wIn); sizeRow.appendChild(hIn);
+
+    // fourth row offset x,y
+    const offRow = document.createElement('div'); offRow.className='props-grid';
+    const xIn = document.createElement('input'); xIn.type='number'; xIn.value=it.offset[0]; xIn.placeholder='offset X';
+    const yIn = document.createElement('input'); yIn.type='number'; yIn.value=it.offset[1]; yIn.placeholder='offset Y';
+    xIn.oninput = ()=>{ it.offset[0]=parseInt(xIn.value)||0; renderPreview(); };
+    yIn.oninput = ()=>{ it.offset[1]=parseInt(yIn.value)||0; renderPreview(); };
+    offRow.appendChild(xIn); offRow.appendChild(yIn);
+
+    // anchors row
+    const anchorRow = document.createElement('div'); anchorRow.className='props-grid';
+    const anchors = ['top_left','top_middle','top_right','left_middle','center','right_middle','bottom_left','bottom_middle','bottom_right'];
+    const aFrom = document.createElement('select'); anchors.forEach(a=>{const o=document.createElement('option'); o.value=a; o.textContent=a; if(a===it.anchor_from) o.selected=true; aFrom.appendChild(o);});
+    const aTo = document.createElement('select'); anchors.forEach(a=>{const o=document.createElement('option'); o.value=a; o.textContent=a; if(a===it.anchor_to) o.selected=true; aTo.appendChild(o);});
+    aFrom.onchange = ()=>{ it.anchor_from = aFrom.value; renderPreview(); };
+    aTo.onchange = ()=>{ it.anchor_to = aTo.value; renderPreview(); };
+    anchorRow.appendChild(aFrom); anchorRow.appendChild(aTo);
+
+    // alpha & animation
+    const animRow = document.createElement('div'); animRow.className='props-grid';
+    const alphaIn = document.createElement('input'); alphaIn.type='number'; alphaIn.step='0.05'; alphaIn.min='0'; alphaIn.max='1'; alphaIn.value=it.alpha;
+    alphaIn.oninput = ()=>{ it.alpha = parseFloat(alphaIn.value)||0; renderPreview(); };
+    const animSelect = document.createElement('select');
+    animationOptions.forEach(opt=>{ const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; if(opt.value===it.uv) o.selected=true; animSelect.appendChild(o); });
+    animSelect.onchange = ()=>{ it.uv = animSelect.value; renderPreview(); };
+
+    animRow.appendChild(alphaIn); animRow.appendChild(animSelect);
+
+    // order controls
+    const orderRow = document.createElement('div'); orderRow.style.display='flex'; orderRow.style.gap='6px'; orderRow.style.justifyContent='flex-end';
+    const upBtn = document.createElement('button'); upBtn.className='btn small'; upBtn.textContent='↑';
+    const downBtn = document.createElement('button'); downBtn.className='btn small'; downBtn.textContent='↓';
+    upBtn.onclick = ()=>{ if(idx===0) return; const temp = sceneItems[idx-1]; sceneItems[idx-1]=sceneItems[idx]; sceneItems[idx]=temp; renderItems(); renderPreview(); };
+    downBtn.onclick = ()=>{ if(idx===sceneItems.length-1) return; const temp = sceneItems[idx+1]; sceneItems[idx+1]=sceneItems[idx]; sceneItems[idx]=temp; renderItems(); renderPreview(); };
+    orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
+
+    // assemble meta
+    meta.appendChild(topRow);
+    meta.appendChild(texRow);
+    meta.appendChild(sizeRow);
+    meta.appendChild(offRow);
+    meta.appendChild(anchorRow);
+    meta.appendChild(animRow);
+    meta.appendChild(orderRow);
+
+    row.appendChild(mini);
+    row.appendChild(meta);
+
+    itemsList.appendChild(row);
+  });
+  renderPreview();
+}
+
+/* ---------------------------
+   Render preview (layering)
+   --------------------------- */
+function renderPreview(){
+  // update title/bottom text
+  previewTitleEl.textContent = previewTitleInput.value;
+  previewBottomEl.textContent = previewBottomInput.value;
+
+  // clear old layers
+  // remove previous layered nodes except the title and bottom nodes
+  const existing = previewPanel.querySelectorAll('.layered');
+  existing.forEach(n=>n.remove());
+
+  // render each scene item in order
+  sceneItems.forEach((it)=>{
+    const node = document.createElement('div');
+    node.className = 'layered';
+    node.style.pointerEvents = 'none';
+    // position relative to center by default; apply offset and anchors
+    // we'll handle anchor simplistically: translate anchor to percent offsets
+    let anchorOffsetX = 0, anchorOffsetY = 0;
+    // mapping common anchors to offset multipliers (not pixel-perfect but close for preview)
+    const anchorMap = {
+      'top_left':[-0.45,-0.42],'top_middle':[0,-0.42],'top_right':[0.45,-0.42],
+      'left_middle':[-0.45,0],'center':[0,0],'right_middle':[0.45,0],
+      'bottom_left':[-0.45,0.42],'bottom_middle':[0,0.42],'bottom_right':[0.45,0.42]
+    };
+    const af = anchorMap[it.anchor_to] || [0,0];
+    // Convert offsets to pixels applied after centering
+    const offX = it.offset[0] || 0;
+    const offY = it.offset[1] || 0;
+    // calculate position
+    const px = (af[0]*previewPanel.clientWidth) + offX;
+    const py = (af[1]*previewPanel.clientHeight) + offY;
+    node.style.left = (50 + (px / previewPanel.clientWidth)*100) + '%';
+    node.style.top  = (50 + (py / previewPanel.clientHeight)*100) + '%';
+    node.style.transform = 'translate(-50%,-50%)';
+    // alpha
+    node.style.opacity = it.alpha == null ? '1' : String(it.alpha);
+
+    if(it.type === 'image'){
+      const img = document.createElement('img');
+      img.src = 'image/' + it.texture;
+      img.style.width = (it.size[0]||30) + 'px';
+      img.style.height = (it.size[1]||30) + 'px';
+      img.alt = it.texture;
+      node.appendChild(img);
+    } else {
+      // panel: display a colored rect representing a panel
+      const panelRect = document.createElement('div');
+      panelRect.style.width = (it.size[0]||60) + 'px';
+      panelRect.style.height = (it.size[1]||30) + 'px';
+      panelRect.style.background = 'rgba(60,60,60,0.6)';
+      panelRect.style.border = '2px solid rgba(200,200,200,0.15)';
+      node.appendChild(panelRect);
     }
 
-    function updatePreview() {
-      document.getElementById("previewTitle").textContent = document.getElementById("titleText").value;
-      document.getElementById("previewBottom").textContent = document.getElementById("bottomText").value;
+    previewPanel.appendChild(node);
+  });
+}
+
+/* ---------------------------
+   Export JSON building
+   --------------------------- */
+
+/* A fixed animations/anim definitions block (kept simple & necessary ones)
+   Based on your original config - we include the definitions that may be referenced.
+*/
+function baseAnimationsObject(){
+  return {
+    "loading_animation_alpha_out": {
+      "anim_type": "alpha",
+      "easing": "in_quart",
+      "duration": 0.5,
+      "from": 1,
+      "to": 0,
+      "destroy_at_end": "chat_grid_item"
+    },
+    "loading_animation_wait": {
+      "anim_type": "wait",
+      "duration": "$loading_animation_wait_duration",
+      "next": "@hud.loading_animation_alpha_out"
+    },
+    "loading_animation_alpha_in": {
+      "anim_type": "alpha",
+      "easing": "out_cubic",
+      "duration": 0.5,
+      "from": 0,
+      "to": 1,
+      "next": "@hud.loading_animation_wait"
+    },
+    "anim_loading_bar": {
+      "anim_type": "size",
+      "easing": "in_out_circ",
+      "duration": "$loading_bar_duration",
+      "from": [0, 16],
+      "to": [200, 16]
+    },
+    "anim_loading_bar_again": {
+      "anim_type": "size",
+      "easing": "linear",
+      "duration": "$loading_bar_duration",
+      "from": [0, 16],
+      "to": [200, 16]
+    },
+    "pick_axe_animation": {
+      "anim_type": "flip_book",
+      "initial_uv": [0, 0],
+      "frame_count": 91,
+      "frame_step": 10,
+      "fps": 30,
+      "reversible": false,
+      "easing": "linear"
+    },
+    "portal_animation": {
+      "anim_type": "flip_book",
+      "initial_uv": [0, 0],
+      "frame_count": 16,
+      "frame_step": 19,
+      "fps": 10,
+      "reversible": true,
+      "easing": "linear"
+    },
+    "spinner_animation": {
+      "anim_type": "flip_book",
+      "initial_uv": [0, 0],
+      "frame_count": 10,
+      "frame_step": 7,
+      "fps": 10
+    },
+    "anim_realms_stories_icon": {
+      "anim_type": "flip_book",
+      "initial_uv": [0, 0],
+      "frame_count": 13,
+      "fps": 8,
+      "looping": false,
+      "easing": "linear",
+      "wait_until_rendered_to_play": true
     }
+  };
+}
 
-    function buildConfigObject(){
-      function texturePath(name){
-        if(!name) return "textures/ui/mine_chop_dig_animation";
-        return "textures/ui/" + name.replace(/\.png$/i, "");
-      }
+/* Turn a filename like 'icon_panda.png' into 'textures/ui/icon_panda' */
+function toExportTexturePath(filename){
+  return 'textures/ui/' + filename.replace(/\.png$/i, '');
+}
 
-      return {
-        "$loading_animation_wait_duration": parseFloat(document.getElementById("waitDuration").value) || 0,
-        "tip_maybe": {
-          "text": document.getElementById("bottomText").value || ""
-        },
-        "maybe_title": {
-          "text": document.getElementById("titleText").value || ""
-        },
-        "loading_icon_pickaxe": {
-          "texture": texturePath(selectedTexture)
+/* Build controls for loading_animation from sceneItems */
+function buildControlsFromScene(){
+  // We'll return an object with keys for each control (id)
+  const controls = {};
+  sceneItems.forEach((it, idx)=>{
+    // sanitize id (no spaces), fallback to auto id if empty
+    let id = (it.id && String(it.id).trim()) || ('item_' + (idx+1));
+    id = id.replace(/\s+/g,'_');
+
+    const base = {
+      "type": it.type === 'panel' ? 'panel' : 'image',
+      "texture": toExportTexturePath(it.texture),
+      "size": [ Number(it.size[0]||0), Number(it.size[1]||0) ]
+    };
+
+    // optional props
+    if(it.offset && (Number(it.offset[0]) || Number(it.offset[1]))){
+      base["offset"] = [ Number(it.offset[0]||0), Number(it.offset[1]||0) ];
+    }
+    if(it.alpha != null && Number(it.alpha) !== 1){
+      base["alpha"] = Number(it.alpha);
+    }
+    // anchor properties - only include if not default center
+    if(it.anchor_from) base["anchor_from"] = it.anchor_from;
+    if(it.anchor_to) base["anchor_to"] = it.anchor_to;
+
+    // animation uv
+    if(it.uv) base["uv"] = it.uv;
+
+    controls[id] = base;
+  });
+  return controls;
+}
+
+/* Build final export object */
+function buildExport(){
+  // base animations
+  const baseAnims = baseAnimationsObject();
+
+  // assembly of loading_animation wrapper
+  const controlsObj = buildControlsFromScene();
+
+  // Compose loading_animation with the generated controls inside the background->controls stack.
+  // We will keep structure similar to original: loading_animation object containing background with controls array.
+  const loadingAnimation = {
+    "$loading_animation_wait_duration": Number(waitDurationInput.value) || 2,
+    "$loading_bar_duration": "$loading_animation_wait_duration",
+    "type": "panel",
+    "size": ["100%","100%"],
+    "layer": 100,
+    "controls": [
+      {
+        "background": {
+          "type":"custom",
+          "renderer":"gradient_renderer",
+          "size":["100%","100%"],
+          "anims":["@hud.loading_animation_alpha_in"],
+          "propagate_alpha": true,
+          "color1":[0,0,0],
+          "color2":[0.11,0.01,0.2],
+          "controls": [
+            // standard left-side items to keep some of original structure (logo/loading bar)
+            {
+              "logo": {
+                "type":"image",
+                "texture":"textures/ui/title",
+                "size":[300,55],
+                "offset":[0,"-25%"]
+              }
+            },
+            {
+              "loading_bar_background": {
+                "type":"image",
+                "texture":"textures/ui/loading_bar_background",
+                "size":[200,16],
+                "offset":[0,"20%"],
+                "controls":[
+                  {
+                    "loading_bar": {
+                      "type":"image",
+                      "texture":"textures/ui/loading_bar_filler",
+                      "size":[200,16],
+                      "anchor_from":"left_middle",
+                      "anchor_to":"left_middle",
+                      "anims":["@hud.anim_loading_bar"]
+                    }
+                  }
+                ]
+              }
+            },
+            // now we append all user controls here
+            // we will convert the controlsObj (map) into the array of single-key objects like original
+            ...Object.keys(controlsObj).map(k => {
+              const obj = {};
+              obj[k] = controlsObj[k];
+              return obj;
+            }),
+            // also include tip_maybe and maybe_title using preview text
+            {
+              "tip_maybe": {
+                "type":"label",
+                "text": previewBottomInput.value || "",
+                "anchor_from":"bottom_middle",
+                "anchor_to":"bottom_middle",
+                "offset":[0,-15]
+              }
+            },
+            {
+              "maybe_title": {
+                "type":"label",
+                "text": previewTitleInput.value || "",
+                "font_type":"MinecraftTen",
+                "font_scale_factor":1.5,
+                "anchor_from":"top_left",
+                "anchor_to":"top_left",
+                "offset":[10,10]
+              }
+            }
+          ]
         }
-      };
-    }
+      }
+    ]
+  };
 
-    function exportConfig() {
-      const config = buildConfigObject();
-      const blob = new Blob([JSON.stringify(config, null, 2)], {type: "application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "config.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+  // Final JSON assembly
+  const finalJSON = {
+    // include animations under top-level hud (this mirrors your original placement)
+    "hud": baseAnims,
+    // include the loading_animation composite
+    "loading_animation": loadingAnimation
+  };
 
-    updatePreview();
-  </script>
+  return finalJSON;
+}
+
+/* ---------------------------
+   Wire export / copy / download
+   --------------------------- */
+exportBtn.addEventListener('click', ()=>{
+  const obj = buildExport();
+  const pretty = JSON.stringify(obj, null, 2);
+  jsonOut.value = pretty;
+});
+
+copyBtn.addEventListener('click', ()=>{
+  if(!jsonOut.value) { alert('Generate JSON first (Export JSON)'); return; }
+  jsonOut.select();
+  document.execCommand('copy');
+  alert('JSON copied to clipboard');
+});
+
+downloadBtn.addEventListener('click', ()=>{
+  if(!jsonOut.value){ alert('Export JSON first'); return; }
+  const blob = new Blob([jsonOut.value], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'loading_config.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ---------------------------
+   Input listeners
+   --------------------------- */
+previewTitleInput.addEventListener('input', renderPreview);
+previewBottomInput.addEventListener('input', renderPreview);
+
+/* ---------------------------
+   initial state
+   --------------------------- */
+renderItems();
+renderPreview();
+
+</script>
 </body>
 </html>

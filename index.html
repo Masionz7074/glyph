@@ -2,60 +2,65 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Minecraft Loading Screen Editor</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Minecraft Loading Screen Configurator</title>
 <style>
+  @font-face{
+    font-family: "MinecraftTen";
+    src: url("fonts/MinecraftTen.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+
   :root{
     --panel-w: 420px;
-    --preview-w: 520px;
+    --preview-w: 680px;
   }
-  html,body{height:100%;margin:0;font-family:Arial, Helvetica, sans-serif;background:#111;color:#111}
-  /* make background fullscreen and pixelated */
+
+  html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:#0b0210;color:#eee}
   body{
-    background-position:center;
-    background-size:cover;
-    background-attachment:fixed;
-    image-rendering:pixelated;
     display:flex;
     gap:20px;
-    padding:24px;
+    padding:20px;
     box-sizing:border-box;
     align-items:flex-start;
     justify-content:center;
+    background: linear-gradient(180deg, #0b0210 0%, #1a0620 40%, #220a2a 100%);
+    background-attachment: fixed;
   }
 
-  /* left: texture library */
+  /* left: textures */
   .sidebar{
     width:var(--panel-w);
-    max-height:calc(100vh - 48px);
+    max-height:calc(100vh - 40px);
     overflow:auto;
-    background:rgba(255,255,255,0.92);
-    border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    border-radius:10px;
     padding:14px;
     box-sizing:border-box;
-    box-shadow:0 6px 18px rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(2px);
   }
-  .sidebar h3{margin:6px 0 12px;font-size:18px;text-align:center}
+  .sidebar h3{margin:6px 0 12px;font-size:16px;text-align:center;font-family: "MinecraftTen", monospace}
   .texture-grid{
     display:grid;
     grid-template-columns:repeat(6,1fr);
     gap:8px;
   }
   .texture-tile{
-    width:56px;height:56px;border:1px solid #bbb;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
-    padding:4px;box-sizing:border-box;border-radius:4px;
+    width:56px;height:56px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:4px;border-radius:4px;
   }
   .texture-tile img{max-width:100%;max-height:100%;image-rendering:pixelated}
 
   .controls-row{display:flex;gap:8px;margin-top:12px;justify-content:center}
-  .btn{padding:8px 12px;border-radius:6px;border:1px solid #888;background:#eee;cursor:pointer}
-  .btn.primary{background:#4b7cff;color:#fff;border-color:#2d5fe6}
+  .btn{padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#eee;cursor:pointer}
+  .btn.primary{background:#5b3cff;border-color:#3d2ae6}
   .small{padding:6px 8px;font-size:13px}
 
-  /* center preview & editor */
+  /* center: preview & export */
   .main{
     width:var(--preview-w);
-    max-height:calc(100vh - 48px);
+    max-height:calc(100vh - 40px);
     overflow:auto;
     display:flex;
     flex-direction:column;
@@ -64,112 +69,138 @@
   }
 
   .header{
-    background:rgba(255,255,255,0.95);
     width:100%;
-    padding:12px;border-radius:8px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.15);
+    padding:8px 12px;border-radius:8px;text-align:left;
+    color:#eee;font-family: "MinecraftTen", monospace;
+    font-size:20px;
   }
-  .preview-wrap{
-    width:100%;
-    display:flex;justify-content:center;
-  }
+
+  /* preview area styled as the loading template */
+  .preview-wrap{width:100%;display:flex;justify-content:center}
   .preview{
     width:100%;
-    max-width:480px;
-    height:260px;
-    background:rgba(20,20,20,0.85);
-    border-radius:6px;border:2px solid #777;
-    position:relative;
+    max-width:760px;
+    height:420px;
+    border-radius:6px;
     overflow:hidden;
+    position:relative;
     box-sizing:border-box;
-    color:#ddd;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
+    background: linear-gradient(180deg, rgba(10,5,12,0.9), rgba(20,6,30,0.95));
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
   }
-  .preview .title{
-    font-weight:bold;
-    margin-top:8px;
-    font-size:20px;
-    text-shadow:0 1px 0 rgba(0,0,0,0.7);
+
+  /* big centered Minecraft logo */
+  .preview .logo{
+    position:absolute; top:28px; left:50%; transform:translateX(-50%);
     pointer-events:none;
   }
-  .preview .bottom{
-    margin-top:8px;font-size:14px;pointer-events:none;color:#cfcfcf;
-  }
-  /* Each added element is absolutely positioned inside .preview */
-  .preview .layered{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none;
-  }
-  .preview .layered img{image-rendering:pixelated;display:block;pointer-events:none}
+  .preview .logo img{width:420px;height:auto;image-rendering:pixelated;display:block}
 
-  /* right side: items list and properties */
+  /* loading bars centered horizontally */
+  .loading-bars{
+    position:absolute;
+    left:50%; top:50%; transform:translate(-50%,-10%);
+    width:420px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  .bar-back{
+    width:100%; height:18px;
+    background: url("image/loading_bar_background.png") no-repeat center center;
+    background-size:100% 100%;
+    border:3px solid rgba(255,255,255,0.12);
+    box-sizing:border-box;
+  }
+  .bar-fill{
+    width:30%; height:100%;
+    background: url("image/loading_bar_filler.png") no-repeat left center;
+    background-size:cover;
+    box-sizing:border-box;
+  }
+  .grass-overlay{
+    width:100%; height:18px;
+    margin-top:-18px;
+    background: url("image/grass_bar.png") no-repeat center top;
+    background-size:contain;
+    pointer-events:none;
+    image-rendering:pixelated;
+  }
+
+  /* bottom-left loading icon & text */
+  .bottom-left{
+    position:absolute; left:28px; bottom:18px; display:flex;align-items:center;gap:10px;pointer-events:none;
+    color:#e6e6e6;font-family:"MinecraftTen",monospace;font-size:14px;
+  }
+  .bottom-left img{width:36px;height:36px;image-rendering:pixelated}
+
+  /* bottom center tip */
+  .tip{
+    position:absolute; left:50%; bottom:26px; transform:translateX(-50%); font-family: "MinecraftTen", monospace; font-size:14px; color:#dcdcdc; letter-spacing:1px;
+  }
+
+  /* small corner icons (right-bottom) */
+  .corner-icons{
+    position:absolute; right:26px; bottom:18px; display:flex; gap:10px; align-items:center;
+  }
+  .corner-icons img{width:28px;height:28px;image-rendering:pixelated}
+
+  /* top-left title text */
+  .top-left-title{
+    position:absolute; left:20px; top:18px; font-family:"MinecraftTen",monospace; font-size:20px; color:#fff; letter-spacing:1px;
+  }
+
+  /* items list & property editor (right column) */
   .sidebar2{
     width:var(--panel-w);
-    max-height:calc(100vh - 48px);
+    max-height:calc(100vh - 40px);
     overflow:auto;
-    background:rgba(255,255,255,0.92);
-    border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    border-radius:10px;
     padding:14px;
     box-sizing:border-box;
-    box-shadow:0 6px 18px rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,0.06);
   }
-  .sidebar2 h3{text-align:center;margin:6px 0 12px}
+  .sidebar2 h3{margin:6px 0 12px;font-size:16px;text-align:center;font-family: "MinecraftTen", monospace}
   .items-list{display:flex;flex-direction:column;gap:8px}
-  .item-row{
-    border:1px solid #cfcfcf;padding:8px;border-radius:6px;background:#fff;display:flex;gap:8px;align-items:center;
-  }
-  .item-row .mini{
-    width:44px;height:44px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;background:#fafafa;
-  }
-  .item-row .mini img{max-width:100%;max-height:100%;image-rendering:pixelated}
-  .item-row .meta{flex:1;display:flex;flex-direction:column;gap:6px}
-  .item-row label{font-size:12px;color:#333}
-  .item-row input, .item-row select{padding:6px;border:1px solid #bbb;border-radius:4px;font-size:13px;width:100%;box-sizing:border-box}
+  .item-row{border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:6px;background:rgba(255,255,255,0.02);display:flex;gap:8px;align-items:center}
+  .mini{width:44px;height:44px;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.01)}
+  .mini img{max-width:100%;max-height:100%;image-rendering:pixelated}
+  .meta{flex:1;display:flex;flex-direction:column;gap:6px}
+  .meta input, .meta select{padding:6px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.25);color:#fff}
 
-  .props-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .row-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+  .export-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+  textarea#jsonOut{width:100%;height:240px;box-sizing:border-box;padding:8px;font-family:monospace;font-size:13px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0b0b0b;color:#ddd}
 
-  /* export area */
-  .export-area{width:100%;background:#fff;padding:10px;border-radius:6px;border:1px solid #ddd}
-  textarea#jsonOut{width:100%;height:240px;box-sizing:border-box;padding:10px;font-family:monospace;font-size:13px}
-
-  /* small helpers */
-  .muted{font-size:12px;color:#666}
-  .center{display:flex;justify-content:center;align-items:center}
-
-  /* responsive */
-  @media (max-width:1100px){
+  .muted{font-size:12px;color:#c2c2c2}
+  @media (max-width:1220px){
     body{flex-direction:column;align-items:stretch;padding:12px}
     .sidebar,.sidebar2,.main{width:auto}
-    .preview{height:320px}
+    .preview{height:480px}
   }
 </style>
 </head>
 <body>
 
-  <!-- left: available textures -->
+  <!-- left textures -->
   <div class="sidebar">
-    <h3>Available Textures (image/)</h3>
-    <div class="muted center">Click a tile to add it to the scene</div>
-    <div id="textureGrid" class="texture-grid" style="margin-top:12px"></div>
-
+    <h3>Textures (image/)</h3>
+    <div class="muted" style="text-align:center;margin-bottom:8px">Click tile → Add Selected</div>
+    <div id="textureGrid" class="texture-grid"></div>
     <div class="controls-row">
       <button id="addSelectedBtn" class="btn primary small">Add Selected</button>
       <button id="clearAllBtn" class="btn small">Clear All</button>
     </div>
-
-    <div style="margin-top:12px" class="muted center">Tip: give items unique IDs (no spaces) for export.</div>
+    <div class="muted" style="margin-top:10px;text-align:center">Tip: exported paths will be <code>textures/ui/&lt;name&gt;</code></div>
   </div>
 
-  <!-- center: preview & export -->
+  <!-- center preview & scene editor -->
   <div class="main">
-    <div class="header">
-      <div style="font-size:20px;font-weight:700">Minecraft Loading Editor</div>
-      <div class="muted" style="margin-top:6px">Add textures, edit properties, preview & export JSON</div>
-    </div>
+    <div class="header">Minecraft Loading Configurator</div>
 
-    <div style="display:flex;gap:12px;align-items:center;justify-content:center;width:100%">
+    <div style="display:flex;gap:12px;align-items:flex-start;width:100%;justify-content:space-between">
       <div style="display:flex;flex-direction:column;gap:6px;width:260px">
         <label class="muted">Wait duration (seconds)</label>
         <input id="waitDuration" type="number" value="2" />
@@ -178,28 +209,51 @@
         <label class="muted">Preview bottom text</label>
         <input id="previewBottomInput" type="text" value="Some text at the bottom" />
       </div>
+
       <div class="preview-wrap">
         <div class="preview" id="previewPanel">
-          <!-- layered elements will be appended here -->
-          <div class="title" id="previewTitle">Title(?)</div>
-          <div class="bottom" id="previewBottom">Some text at the bottom</div>
+          <div class="top-left-title" id="previewTopLeft">TITLE{?}</div>
+
+          <div class="logo">
+            <img id="previewLogo" src="image/title.png" alt="logo">
+          </div>
+
+          <div class="loading-bars" id="loadingBars">
+            <div class="bar-back" id="barBack">
+              <div class="bar-fill" id="barFill"></div>
+            </div>
+            <div class="grass-overlay" id="grassOverlay"></div>
+          </div>
+
+          <div class="bottom-left" id="bottomLeft">
+            <img id="bottomLeftIcon" src="image/worldsIcon.png" alt="">
+            <div id="bottomLeftText" style="font-family: MinecraftTen, monospace">LOADING...</div>
+          </div>
+
+          <div class="corner-icons" id="cornerIcons">
+            <img id="corner1" src="image/mine_chop_dig_animation.png" alt="">
+            <img id="corner2" src="image/realmsStoriesIconAnimated.png" alt="">
+            <img id="corner3" src="image/loading_spin.png" alt="">
+          </div>
+
+          <div class="tip" id="previewBottom">Some text at the bottom</div>
         </div>
       </div>
     </div>
 
     <div style="width:100%;display:flex;gap:8px;justify-content:space-between;align-items:center">
-      <h3 style="margin:8px 0 0">Scene Items</h3>
-      <div class="muted">Order = render order (first = back)</div>
+      <h3 style="margin:8px 0 0;font-family: MinecraftTen, monospace">Scene Items</h3>
+      <div class="muted">First = back, last = front</div>
     </div>
 
     <div id="itemsList" class="items-list"></div>
 
-    <div style="width:100%;display:flex;gap:8px;margin-top:10px;align-items:center">
+    <div class="export-row">
       <button id="exportBtn" class="btn primary">Export JSON</button>
       <button id="downloadBtn" class="btn">Download JSON</button>
       <button id="copyBtn" class="btn">Copy JSON</button>
       <div style="flex:1"></div>
-      <div class="muted">Export path uses <code>textures/ui/&lt;name-without-.png&gt;</code></div>
+      <div class="muted">Export path: <code>textures/ui/&lt;name-without-.png&gt;</code></div>
     </div>
 
     <div style="margin-top:12px;width:100%" class="export-area">
@@ -207,41 +261,26 @@
     </div>
   </div>
 
-  <!-- right: list of available controls with properties -->
+  <!-- right properties -->
   <div class="sidebar2">
     <h3>Item Properties</h3>
-    <div class="muted center">Click an item on the right to edit its properties</div>
-    <div style="height:8px"></div>
-    <div style="font-size:13px" class="muted">Anchors: typical anchors used in your original json (top_left, top_right, bottom_middle, left_middle, right_middle)</div>
+    <div class="muted" style="text-align:center;margin-bottom:8px">Click an item to edit</div>
+    <div class="muted" style="font-size:13px">Animation options: pick_axe_animation, portal_animation, spinner_animation, anim_realms_stories_icon</div>
     <div style="height:12px"></div>
-    <div style="font-weight:bold;margin-bottom:8px">Animation mapping (for animated textures)</div>
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <div class="muted">If you select an animation for an item, the exported JSON will include a <code>uv</code> reference to that animation (eg <code>@hud.pick_axe_animation</code>).</div>
-      <ul style="margin:6px 0 0 18px">
-        <li>pick_axe_animation</li>
-        <li>portal_animation</li>
-        <li>spinner_animation</li>
-        <li>anim_realms_stories_icon</li>
-      </ul>
-    </div>
+    <div style="font-weight:bold;margin-bottom:8px">Items</div>
+    <div id="itemsListProps" class="items-list"></div>
   </div>
 
 <script>
-/* ---------------------------
-   Config / available textures
-   --------------------------- */
+/* -------------------------
+   Configuration & textures
+   ------------------------- */
 const availableTextures = [
-  "mine_chop_dig_animation.png","icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",
-  "language_glyph.png","lapis.png","lan_icon.png","invite_base.png","icon_summer.png",
-  "icon_staffpicks.png","icon_map.png","icon_llama.png","icon_fall.png","icon_crafting.png",
-  "icon_cookie.png","icon_carrot.png","icon_cake.png","icon_bookshelf.png","icon_book_writable.png",
-  "icon_blackfriday.png","icon_bell.png","icon_balloon.png","icon_armor.png",
-  "hunger_background.png","hunger_effect.png","hunger_blink.png",
-  "loading_spin.png","realms_plus_hover.png","realmsStoriesIconAnimated.png","icon_panda.png","worldsIcon.png",
-  "loading_bar_background.png","loading_bar_filler.png","another_grass.png","grass_bar.png","mine_chop_dig_animation.png"
+  "title.png","loading_bar_background.png","loading_bar_filler.png","grass_bar.png",
+  "mine_chop_dig_animation.png","icon_panda.png","loading_spin.png","realmsStoriesIconAnimated.png","worldsIcon.png",
+  "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png","language_glyph.png","lapis.png"
 ];
 
-// animations that can be attached to an item (these names will become uv refs)
 const animationOptions = [
   {value:"",label:"(none)"},
   {value:"@hud.pick_axe_animation",label:"pick_axe_animation"},
@@ -250,22 +289,22 @@ const animationOptions = [
   {value:"@hud.anim_realms_stories_icon",label:"anim_realms_stories_icon"}
 ];
 
-/* ---------------------------
-   Random fullscreen background
-   --------------------------- */
+/* -------------------------
+   Random gradient background not needed (we keep template gradient)
+   But allow optional background images if present */
 const backgrounds = ["image/dirt.png","image/stone.png","image/sky.png"];
 const randomBg = backgrounds[Math.floor(Math.random()*backgrounds.length)];
-document.body.style.background = `url(${randomBg}) no-repeat center center fixed`;
-document.body.style.backgroundSize = "cover";
-document.body.style.imageRendering = "pixelated";
+// Optional: comment out if you prefer the solid gradient template background
+// document.body.style.backgroundImage = `url(${randomBg})`;
 
-/* ---------------------------
-   DOM references
-   --------------------------- */
+/* -------------------------
+   DOM refs
+   ------------------------- */
 const textureGrid = document.getElementById('textureGrid');
 const addSelectedBtn = document.getElementById('addSelectedBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const itemsList = document.getElementById('itemsList');
+const itemsListProps = document.getElementById('itemsListProps');
 const previewPanel = document.getElementById('previewPanel');
 const previewTitleInput = document.getElementById('previewTitleInput');
 const previewBottomInput = document.getElementById('previewBottomInput');
@@ -277,9 +316,18 @@ const jsonOut = document.getElementById('jsonOut');
 const copyBtn = document.getElementById('copyBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 
-/* ---------------------------
-   Build texture grid
-   --------------------------- */
+const previewLogo = document.getElementById('previewLogo');
+const barBack = document.getElementById('barBack');
+const barFill = document.getElementById('barFill');
+const grassOverlay = document.getElementById('grassOverlay');
+const bottomLeftIcon = document.getElementById('bottomLeftIcon');
+const bottomLeftText = document.getElementById('bottomLeftText');
+const cornerIcons = document.getElementById('cornerIcons');
+const previewTopLeft = document.getElementById('previewTopLeft');
+
+/* -------------------------
+   Populate texture tiles
+   ------------------------- */
 let selectedTile = null;
 availableTextures.forEach(name=>{
   const tile = document.createElement('div');
@@ -290,219 +338,230 @@ availableTextures.forEach(name=>{
   tile.appendChild(img);
   tile.title = name;
   tile.onclick = () => {
-    // mark selected in UI
     document.querySelectorAll('.texture-tile').forEach(t=>t.style.outline='none');
-    tile.style.outline = '3px solid #2d6cff';
+    tile.style.outline = '3px solid rgba(75,124,255,0.9)';
     selectedTile = name;
   };
   textureGrid.appendChild(tile);
 });
 
-/* ---------------------------
-   Scene items storage
-   --------------------------- */
-let sceneItems = []; // array of item objects in order
+/* -------------------------
+   Scene items store
+   ------------------------- */
+let sceneItems = [];
+
+/* default UI items (logo, bars, icons) are handled in preview DOM directly.
+   sceneItems are extra overlay elements user can add, edit, reorder, and export.
+*/
 
 function addItemFromTexture(textureName){
-  // default id: textureName without extension + index
-  const idBase = textureName.replace(/\.[^/.]+$/, "");
+  const idBase = textureName.replace(/\.[^/.]+$/,'');
   const id = idBase + "_" + (sceneItems.length+1);
   const item = {
     id,
     type: "image",
     texture: textureName,
-    size: [30,30],
+    size: [32,32],
     offset: [0,0],
     anchor_from: "center",
     anchor_to: "center",
     alpha: 1,
-    uv: "" // optional animation UV ref
+    uv: ""
   };
   sceneItems.push(item);
   renderItems();
 }
 
 addSelectedBtn.addEventListener('click', ()=>{
-  if(!selectedTile){
-    alert("Select a texture tile first (left panel).");
-    return;
-  }
+  if(!selectedTile){ alert("Select a texture tile first."); return; }
   addItemFromTexture(selectedTile);
 });
 
 clearAllBtn.addEventListener('click', ()=>{
-  if(!confirm("Clear all scene items?")) return;
+  if(!confirm("Clear all added items?")) return;
   sceneItems = [];
   renderItems();
-  renderPreview();
 });
 
-/* ---------------------------
-   Render items list (right) and wire editing
-   --------------------------- */
+/* -------------------------
+   Render items list (center) & props (right)
+   ------------------------- */
 function renderItems(){
   itemsList.innerHTML = "";
+  itemsListProps.innerHTML = "";
   sceneItems.forEach((it, idx)=>{
+    // center list visible thumbnail row
     const row = document.createElement('div');
     row.className = 'item-row';
     row.dataset.index = idx;
-
     const mini = document.createElement('div'); mini.className='mini';
     const img = document.createElement('img'); img.src = 'image/' + it.texture; img.alt = it.texture;
     mini.appendChild(img);
-
     const meta = document.createElement('div'); meta.className='meta';
+    meta.innerHTML = `<div style="display:flex;gap:8px">
+      <input value="${it.id}" style="flex:1" />
+      <button class="btn small">Remove</button>
+    </div>`;
+    const idInput = meta.querySelector('input');
+    const removeBtn = meta.querySelector('button');
+    idInput.oninput = ()=>{ it.id = idInput.value.trim(); buildAndRenderPreview(); renderProps(); };
+    removeBtn.onclick = ()=>{ sceneItems.splice(idx,1); renderItems(); buildAndRenderPreview(); };
 
-    // first row: id and remove
-    const topRow = document.createElement('div'); topRow.style.display='flex'; topRow.style.gap='8px';
-    const idInput = document.createElement('input'); idInput.value=it.id; idInput.style.width='60%';
-    idInput.oninput = () => { it.id = idInput.value.trim(); renderPreview(); };
+    row.appendChild(mini); row.appendChild(meta);
+    itemsList.appendChild(row);
 
-    const removeBtn = document.createElement('button'); removeBtn.className='btn small'; removeBtn.textContent='Remove';
-    removeBtn.onclick = () => { sceneItems.splice(idx,1); renderItems(); renderPreview(); };
+    // right props editor
+    const r = document.createElement('div'); r.className='item-row';
+    const mini2 = document.createElement('div'); mini2.className='mini';
+    const img2 = document.createElement('img'); img2.src = 'image/' + it.texture;
+    mini2.appendChild(img2);
 
-    topRow.appendChild(idInput); topRow.appendChild(removeBtn);
+    const props = document.createElement('div'); props.className='meta';
+    // fields
+    const texSel = document.createElement('select');
+    availableTextures.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; if(t===it.texture) o.selected=true; texSel.appendChild(o); });
+    texSel.onchange = ()=>{ it.texture = texSel.value; renderItems(); buildAndRenderPreview(); };
 
-    // second row: texture & type
-    const texRow = document.createElement('div'); texRow.className='props-grid';
-    const texSelect = document.createElement('select');
-    availableTextures.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; if(t===it.texture) o.selected=true; texSelect.appendChild(o); });
-    texSelect.onchange = ()=>{ it.texture = texSelect.value; renderPreview(); };
+    const typeSel = document.createElement('select');
+    ['image','panel'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; if(it.type===v) o.selected=true; typeSel.appendChild(o); });
+    typeSel.onchange = ()=>{ it.type = typeSel.value; buildAndRenderPreview(); };
 
-    const typeSelect = document.createElement('select');
-    ['image','panel'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; if(it.type===v) o.selected=true; typeSelect.appendChild(o); });
-    typeSelect.onchange = ()=>{ it.type = typeSelect.value; renderPreview(); };
+    const sizeW = document.createElement('input'); sizeW.type='number'; sizeW.value=it.size[0];
+    const sizeH = document.createElement('input'); sizeH.type='number'; sizeH.value=it.size[1];
+    sizeW.oninput = ()=>{ it.size[0]=Number(sizeW.value)||0; buildAndRenderPreview(); };
+    sizeH.oninput = ()=>{ it.size[1]=Number(sizeH.value)||0; buildAndRenderPreview(); };
 
-    texRow.appendChild(texSelect); texRow.appendChild(typeSelect);
+    const offX = document.createElement('input'); offX.type='number'; offX.value=it.offset[0];
+    const offY = document.createElement('input'); offY.type='number'; offY.value=it.offset[1];
+    offX.oninput = ()=>{ it.offset[0]=Number(offX.value)||0; buildAndRenderPreview(); };
+    offY.oninput = ()=>{ it.offset[1]=Number(offY.value)||0; buildAndRenderPreview(); };
 
-    // third row size & alpha
-    const sizeRow = document.createElement('div'); sizeRow.className='props-grid';
-    const wIn = document.createElement('input'); wIn.type='number'; wIn.value=it.size[0]; wIn.min=0;
-    const hIn = document.createElement('input'); hIn.type='number'; hIn.value=it.size[1]; hIn.min=0;
-    wIn.oninput = ()=>{ it.size[0]=parseInt(wIn.value)||0; renderPreview(); };
-    hIn.oninput = ()=>{ it.size[1]=parseInt(hIn.value)||0; renderPreview(); };
-    sizeRow.appendChild(wIn); sizeRow.appendChild(hIn);
-
-    // fourth row offset x,y
-    const offRow = document.createElement('div'); offRow.className='props-grid';
-    const xIn = document.createElement('input'); xIn.type='number'; xIn.value=it.offset[0]; xIn.placeholder='offset X';
-    const yIn = document.createElement('input'); yIn.type='number'; yIn.value=it.offset[1]; yIn.placeholder='offset Y';
-    xIn.oninput = ()=>{ it.offset[0]=parseInt(xIn.value)||0; renderPreview(); };
-    yIn.oninput = ()=>{ it.offset[1]=parseInt(yIn.value)||0; renderPreview(); };
-    offRow.appendChild(xIn); offRow.appendChild(yIn);
-
-    // anchors row
-    const anchorRow = document.createElement('div'); anchorRow.className='props-grid';
+    const anchorFrom = document.createElement('select');
+    const anchorTo   = document.createElement('select');
     const anchors = ['top_left','top_middle','top_right','left_middle','center','right_middle','bottom_left','bottom_middle','bottom_right'];
-    const aFrom = document.createElement('select'); anchors.forEach(a=>{const o=document.createElement('option'); o.value=a; o.textContent=a; if(a===it.anchor_from) o.selected=true; aFrom.appendChild(o);});
-    const aTo = document.createElement('select'); anchors.forEach(a=>{const o=document.createElement('option'); o.value=a; o.textContent=a; if(a===it.anchor_to) o.selected=true; aTo.appendChild(o);});
-    aFrom.onchange = ()=>{ it.anchor_from = aFrom.value; renderPreview(); };
-    aTo.onchange = ()=>{ it.anchor_to = aTo.value; renderPreview(); };
-    anchorRow.appendChild(aFrom); anchorRow.appendChild(aTo);
+    anchors.forEach(a=>{ const o1=document.createElement('option'); o1.value=a; o1.textContent=a; if(it.anchor_from===a) o1.selected=true; anchorFrom.appendChild(o1);
+                        const o2=document.createElement('option'); o2.value=a; o2.textContent=a; if(it.anchor_to===a) o2.selected=true; anchorTo.appendChild(o2);});
+    anchorFrom.onchange = ()=>{ it.anchor_from=anchorFrom.value; buildAndRenderPreview(); };
+    anchorTo.onchange = ()=>{ it.anchor_to=anchorTo.value; buildAndRenderPreview(); };
 
-    // alpha & animation
-    const animRow = document.createElement('div'); animRow.className='props-grid';
     const alphaIn = document.createElement('input'); alphaIn.type='number'; alphaIn.step='0.05'; alphaIn.min='0'; alphaIn.max='1'; alphaIn.value=it.alpha;
-    alphaIn.oninput = ()=>{ it.alpha = parseFloat(alphaIn.value)||0; renderPreview(); };
-    const animSelect = document.createElement('select');
-    animationOptions.forEach(opt=>{ const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; if(opt.value===it.uv) o.selected=true; animSelect.appendChild(o); });
-    animSelect.onchange = ()=>{ it.uv = animSelect.value; renderPreview(); };
+    alphaIn.oninput = ()=>{ it.alpha=Number(alphaIn.value)||0; buildAndRenderPreview(); };
 
-    animRow.appendChild(alphaIn); animRow.appendChild(animSelect);
+    const animSel = document.createElement('select');
+    animationOptions.forEach(opt=>{ const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; if(opt.value===it.uv) o.selected=true; animSel.appendChild(o);});
+    animSel.onchange = ()=>{ it.uv = animSel.value; buildAndRenderPreview(); };
 
-    // order controls
-    const orderRow = document.createElement('div'); orderRow.style.display='flex'; orderRow.style.gap='6px'; orderRow.style.justifyContent='flex-end';
     const upBtn = document.createElement('button'); upBtn.className='btn small'; upBtn.textContent='↑';
     const downBtn = document.createElement('button'); downBtn.className='btn small'; downBtn.textContent='↓';
-    upBtn.onclick = ()=>{ if(idx===0) return; const temp = sceneItems[idx-1]; sceneItems[idx-1]=sceneItems[idx]; sceneItems[idx]=temp; renderItems(); renderPreview(); };
-    downBtn.onclick = ()=>{ if(idx===sceneItems.length-1) return; const temp = sceneItems[idx+1]; sceneItems[idx+1]=sceneItems[idx]; sceneItems[idx]=temp; renderItems(); renderPreview(); };
-    orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
+    upBtn.onclick = ()=>{ if(idx===0) return; [sceneItems[idx-1],sceneItems[idx]]=[sceneItems[idx],sceneItems[idx-1]]; renderItems(); buildAndRenderPreview(); };
+    downBtn.onclick = ()=>{ if(idx===sceneItems.length-1) return; [sceneItems[idx+1],sceneItems[idx]]=[sceneItems[idx],sceneItems[idx+1]]; renderItems(); buildAndRenderPreview(); };
 
-    // assemble meta
-    meta.appendChild(topRow);
-    meta.appendChild(texRow);
-    meta.appendChild(sizeRow);
-    meta.appendChild(offRow);
-    meta.appendChild(anchorRow);
-    meta.appendChild(animRow);
-    meta.appendChild(orderRow);
+    // assemble props layout
+    props.appendChild(texSel);
+    props.appendChild(typeSel);
+    const sizeDiv = document.createElement('div'); sizeDiv.style.display='flex'; sizeDiv.style.gap='6px';
+    sizeDiv.appendChild(sizeW); sizeDiv.appendChild(sizeH); props.appendChild(sizeDiv);
+    const offDiv = document.createElement('div'); offDiv.style.display='flex'; offDiv.style.gap='6px';
+    offDiv.appendChild(offX); offDiv.appendChild(offY); props.appendChild(offDiv);
+    const ancDiv = document.createElement('div'); ancDiv.style.display='flex'; ancDiv.style.gap='6px';
+    ancDiv.appendChild(anchorFrom); ancDiv.appendChild(anchorTo); props.appendChild(ancDiv);
+    const animDiv = document.createElement('div'); animDiv.style.display='flex'; animDiv.style.gap='6px';
+    animDiv.appendChild(alphaIn); animDiv.appendChild(animSel); props.appendChild(animDiv);
+    const orderDiv = document.createElement('div'); orderDiv.style.display='flex'; orderDiv.style.justifyContent='flex-end'; orderDiv.style.gap='6px';
+    orderDiv.appendChild(upBtn); orderDiv.appendChild(downBtn); props.appendChild(orderDiv);
 
-    row.appendChild(mini);
-    row.appendChild(meta);
-
-    itemsList.appendChild(row);
+    r.appendChild(mini2);
+    r.appendChild(props);
+    itemsListProps.appendChild(r);
   });
-  renderPreview();
 }
 
-/* ---------------------------
-   Render preview (layering)
-   --------------------------- */
-function renderPreview(){
-  // update title/bottom text
-  previewTitleEl.textContent = previewTitleInput.value;
-  previewBottomEl.textContent = previewBottomInput.value;
+/* -------------------------
+   Render preview (logo, bars, tip, plus user layers)
+   ------------------------- */
+function buildAndRenderPreview(){
+  // preview title & bottom
+  previewTopLeft.textContent = previewTitleInput.value || "";
+  previewBottomEl.textContent = previewBottomInput.value || "";
+  bottomLeftText.textContent = "LOADING...";
 
-  // clear old layers
-  // remove previous layered nodes except the title and bottom nodes
-  const existing = previewPanel.querySelectorAll('.layered');
+  // bar fill width from a dummy percent or single default (we keep it editable via first user item if needed)
+  // find if an item with id like 'loading_bar_filler' exists, otherwise keep default 30%
+  const fillerOverride = sceneItems.find(it=>it.texture && it.texture.includes('loading_bar_filler'));
+  const percent = fillerOverride ? Math.min(100, Math.max(0, (fillerOverride.size[0]||30))) : 30;
+  barFill.style.width = percent + '%';
+
+  // update bar backgrounds if textures exist
+  barBack.style.backgroundImage = `url('image/loading_bar_background.png')`;
+  barFill.style.backgroundImage = `url('image/loading_bar_filler.png')`;
+  grassOverlay.style.backgroundImage = `url('image/grass_bar.png')`;
+
+  // corner icons (first three sceneItems used for corner icons if user assigned)
+  const cornerImgs = cornerIcons.querySelectorAll('img');
+  cornerImgs.forEach((img, i)=> {
+    const si = sceneItems[i];
+    if(si && si.texture){
+      img.src = 'image/' + si.texture;
+      img.style.width = si.size[0] + 'px';
+      img.style.height = si.size[1] + 'px';
+      img.style.opacity = si.alpha;
+    } else {
+      // fallback default icons
+      const defaults = ['mine_chop_dig_animation.png','realmsStoriesIconAnimated.png','loading_spin.png'];
+      img.src = 'image/' + defaults[i];
+      img.style.width = '28px'; img.style.height='28px'; img.style.opacity = 1;
+    }
+  });
+
+  // bottom-left icon (use next scene item if present)
+  const bl = sceneItems[3];
+  if(bl && bl.texture){
+    bottomLeftIcon.src = 'image/' + bl.texture;
+    bottomLeftIcon.style.width = bl.size[0] + 'px';
+    bottomLeftIcon.style.height = bl.size[1] + 'px';
+    bottomLeftIcon.style.opacity = bl.alpha;
+  } else {
+    bottomLeftIcon.src = 'image/worldsIcon.png';
+    bottomLeftIcon.style.width = '36px'; bottomLeftIcon.style.height='36px';
+    bottomLeftIcon.style.opacity = 1;
+  }
+
+  // render additional overlay layers (starting after those used for corners)
+  // Remove existing overlay nodes
+  const existing = previewPanel.querySelectorAll('.user-layer');
   existing.forEach(n=>n.remove());
 
-  // render each scene item in order
-  sceneItems.forEach((it)=>{
+  // for simplicity, place remaining sceneItems centered with offset; handles anchor_to roughly
+  sceneItems.forEach((it, idx) => {
+    // skip first 4 used for corners/left icon if used
+    if(idx <= 3) return;
     const node = document.createElement('div');
-    node.className = 'layered';
-    node.style.pointerEvents = 'none';
-    // position relative to center by default; apply offset and anchors
-    // we'll handle anchor simplistically: translate anchor to percent offsets
-    let anchorOffsetX = 0, anchorOffsetY = 0;
-    // mapping common anchors to offset multipliers (not pixel-perfect but close for preview)
-    const anchorMap = {
-      'top_left':[-0.45,-0.42],'top_middle':[0,-0.42],'top_right':[0.45,-0.42],
-      'left_middle':[-0.45,0],'center':[0,0],'right_middle':[0.45,0],
-      'bottom_left':[-0.45,0.42],'bottom_middle':[0,0.42],'bottom_right':[0.45,0.42]
-    };
-    const af = anchorMap[it.anchor_to] || [0,0];
-    // Convert offsets to pixels applied after centering
-    const offX = it.offset[0] || 0;
-    const offY = it.offset[1] || 0;
-    // calculate position
-    const px = (af[0]*previewPanel.clientWidth) + offX;
-    const py = (af[1]*previewPanel.clientHeight) + offY;
-    node.style.left = (50 + (px / previewPanel.clientWidth)*100) + '%';
-    node.style.top  = (50 + (py / previewPanel.clientHeight)*100) + '%';
+    node.className = 'user-layer';
+    node.style.position = 'absolute';
+    node.style.left = '50%';
+    node.style.top = '50%';
     node.style.transform = 'translate(-50%,-50%)';
-    // alpha
-    node.style.opacity = it.alpha == null ? '1' : String(it.alpha);
+    node.style.pointerEvents = 'none';
+    node.style.opacity = it.alpha == null ? 1 : it.alpha;
 
-    if(it.type === 'image'){
-      const img = document.createElement('img');
-      img.src = 'image/' + it.texture;
-      img.style.width = (it.size[0]||30) + 'px';
-      img.style.height = (it.size[1]||30) + 'px';
-      img.alt = it.texture;
-      node.appendChild(img);
-    } else {
-      // panel: display a colored rect representing a panel
-      const panelRect = document.createElement('div');
-      panelRect.style.width = (it.size[0]||60) + 'px';
-      panelRect.style.height = (it.size[1]||30) + 'px';
-      panelRect.style.background = 'rgba(60,60,60,0.6)';
-      panelRect.style.border = '2px solid rgba(200,200,200,0.15)';
-      node.appendChild(panelRect);
-    }
-
+    const img = document.createElement('img');
+    img.src = 'image/' + it.texture;
+    img.style.width = (it.size[0] || 32) + 'px';
+    img.style.height = (it.size[1] || 32) + 'px';
+    img.style.imageRendering = 'pixelated';
+    // apply offset
+    const offX = (it.offset && it.offset[0]) ? it.offset[0] : 0;
+    const offY = (it.offset && it.offset[1]) ? it.offset[1] : 0;
+    node.style.left = `calc(50% + ${offX}px)`;
+    node.style.top = `calc(50% + ${offY}px)`;
+    node.appendChild(img);
     previewPanel.appendChild(node);
   });
 }
 
-/* ---------------------------
-   Export JSON building
-   --------------------------- */
-
-/* A fixed animations/anim definitions block (kept simple & necessary ones)
-   Based on your original config - we include the definitions that may be referenced.
-*/
+/* -------------------------
+   JSON export builder
+   ------------------------- */
 function baseAnimationsObject(){
   return {
     "loading_animation_alpha_out": {
@@ -577,55 +636,39 @@ function baseAnimationsObject(){
   };
 }
 
-/* Turn a filename like 'icon_panda.png' into 'textures/ui/icon_panda' */
 function toExportTexturePath(filename){
   return 'textures/ui/' + filename.replace(/\.png$/i, '');
 }
 
-/* Build controls for loading_animation from sceneItems */
 function buildControlsFromScene(){
-  // We'll return an object with keys for each control (id)
   const controls = {};
   sceneItems.forEach((it, idx)=>{
-    // sanitize id (no spaces), fallback to auto id if empty
     let id = (it.id && String(it.id).trim()) || ('item_' + (idx+1));
     id = id.replace(/\s+/g,'_');
-
     const base = {
       "type": it.type === 'panel' ? 'panel' : 'image',
       "texture": toExportTexturePath(it.texture),
       "size": [ Number(it.size[0]||0), Number(it.size[1]||0) ]
     };
-
-    // optional props
     if(it.offset && (Number(it.offset[0]) || Number(it.offset[1]))){
       base["offset"] = [ Number(it.offset[0]||0), Number(it.offset[1]||0) ];
     }
     if(it.alpha != null && Number(it.alpha) !== 1){
       base["alpha"] = Number(it.alpha);
     }
-    // anchor properties - only include if not default center
     if(it.anchor_from) base["anchor_from"] = it.anchor_from;
     if(it.anchor_to) base["anchor_to"] = it.anchor_to;
-
-    // animation uv
     if(it.uv) base["uv"] = it.uv;
-
     controls[id] = base;
   });
   return controls;
 }
 
-/* Build final export object */
 function buildExport(){
-  // base animations
   const baseAnims = baseAnimationsObject();
-
-  // assembly of loading_animation wrapper
   const controlsObj = buildControlsFromScene();
+  const controlsArray = Object.keys(controlsObj).map(k => { const o={}; o[k]=controlsObj[k]; return o; });
 
-  // Compose loading_animation with the generated controls inside the background->controls stack.
-  // We will keep structure similar to original: loading_animation object containing background with controls array.
   const loadingAnimation = {
     "$loading_animation_wait_duration": Number(waitDurationInput.value) || 2,
     "$loading_bar_duration": "$loading_animation_wait_duration",
@@ -643,12 +686,11 @@ function buildExport(){
           "color1":[0,0,0],
           "color2":[0.11,0.01,0.2],
           "controls": [
-            // standard left-side items to keep some of original structure (logo/loading bar)
             {
               "logo": {
                 "type":"image",
                 "texture":"textures/ui/title",
-                "size":[300,55],
+                "size":[420,105],
                 "offset":[0,"-25%"]
               }
             },
@@ -672,14 +714,8 @@ function buildExport(){
                 ]
               }
             },
-            // now we append all user controls here
-            // we will convert the controlsObj (map) into the array of single-key objects like original
-            ...Object.keys(controlsObj).map(k => {
-              const obj = {};
-              obj[k] = controlsObj[k];
-              return obj;
-            }),
-            // also include tip_maybe and maybe_title using preview text
+            // user controls inserted here
+            ...controlsArray,
             {
               "tip_maybe": {
                 "type":"label",
@@ -706,31 +742,26 @@ function buildExport(){
     ]
   };
 
-  // Final JSON assembly
   const finalJSON = {
-    // include animations under top-level hud (this mirrors your original placement)
     "hud": baseAnims,
-    // include the loading_animation composite
     "loading_animation": loadingAnimation
   };
-
   return finalJSON;
 }
 
-/* ---------------------------
-   Wire export / copy / download
-   --------------------------- */
+/* -------------------------
+   Export / copy / download handlers
+   ------------------------- */
 exportBtn.addEventListener('click', ()=>{
   const obj = buildExport();
-  const pretty = JSON.stringify(obj, null, 2);
-  jsonOut.value = pretty;
+  jsonOut.value = JSON.stringify(obj,null,2);
 });
 
 copyBtn.addEventListener('click', ()=>{
-  if(!jsonOut.value) { alert('Generate JSON first (Export JSON)'); return; }
+  if(!jsonOut.value){ alert('Export JSON first'); return; }
   jsonOut.select();
   document.execCommand('copy');
-  alert('JSON copied to clipboard');
+  alert('Copied JSON to clipboard');
 });
 
 downloadBtn.addEventListener('click', ()=>{
@@ -744,18 +775,20 @@ downloadBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* ---------------------------
-   Input listeners
-   --------------------------- */
-previewTitleInput.addEventListener('input', renderPreview);
-previewBottomInput.addEventListener('input', renderPreview);
+/* -------------------------
+   Live preview wiring
+   ------------------------- */
+previewTitleInput.addEventListener('input', buildAndRenderPreview);
+previewBottomInput.addEventListener('input', buildAndRenderPreview);
+waitDurationInput.addEventListener('input', ()=>{ /* noop for preview */ });
 
-/* ---------------------------
-   initial state
-   --------------------------- */
-renderItems();
-renderPreview();
+function renderItemsInitial(){
+  // initial empty render
+  renderItems();
+  buildAndRenderPreview();
+}
 
+renderItemsInitial();
 </script>
 </body>
 </html>

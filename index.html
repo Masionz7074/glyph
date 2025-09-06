@@ -6,150 +6,107 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      color: black;
       text-align: center;
-      margin: 20px;
+      margin: 0;
       padding: 0;
+      background-color: #222;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
     }
-
+    .container {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-top: 20px;
+    }
     h1 {
-      font-size: 28px;
-      margin: 10px 0;
+      margin-top: 0;
     }
-
-    h2 {
-      margin: 20px 0 10px;
-    }
-
-    .form-section {
-      margin: 20px auto;
-      text-align: left;
-      max-width: 400px;
-    }
-
     label {
       display: block;
-      margin-top: 10px;
-      font-size: 14px;
+      margin: 10px 0 5px;
+      font-weight: bold;
     }
-
-    input[type="text"], input[type="number"] {
-      padding: 6px;
-      margin-top: 4px;
-      margin-bottom: 12px;
-      border-radius: 4px;
-      border: 1px solid #aaa;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    button {
-      background: #ddd;
-      color: black;
-      border: 1px solid #aaa;
-      padding: 8px 16px;
-      margin: 8px 4px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #ccc;
-    }
-
-    /* Preview box */
-    .preview {
-      margin: 20px auto;
-      padding: 15px;
-      border: 1px solid #aaa;
-      width: 400px;
-    }
-
-    .preview-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 20px;
+    input {
+      padding: 5px;
+      width: 300px;
       margin-bottom: 10px;
     }
-
-    .preview-title img {
-      width: 24px;
-      height: 24px;
-      image-rendering: pixelated;
-    }
-
-    .preview-bottom {
-      font-size: 16px;
-      color: #333;
-    }
-
-    /* Icon grid */
-    .slots {
-      display: grid;
-      grid-template-columns: repeat(9, 48px);
-      grid-template-rows: repeat(6, 48px);
-      gap: 4px;
-      justify-content: center;
+    .preview {
       margin: 20px auto;
+      padding: 10px;
+      border: 2px solid #888;
+      width: 400px;
+      background: rgba(240, 240, 240, 0.9);
+      border-radius: 6px;
     }
-
+    .preview img {
+      width: 32px;
+      height: 32px;
+      vertical-align: middle;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 40px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin-top: 20px;
+    }
     .slot {
-      width: 48px;
-      height: 48px;
-      border: 1px solid #aaa;
+      width: 40px;
+      height: 40px;
+      border: 1px solid #999;
+      background: rgba(255,255,255,0.7);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
-
     .slot img {
-      max-width: 80%;
-      max-height: 80%;
-      pointer-events: none;
+      max-width: 32px;
+      max-height: 32px;
     }
-
     .slot.selected {
-      outline: 2px solid black;
+      border: 2px solid red;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
-  <h1>Minecraft Configurator</h1>
-
-  <div class="form-section">
+  <div class="container">
+    <h1>Minecraft Configurator</h1>
     <label>Wait Duration (seconds):</label>
-    <input type="number" id="waitDuration" value="2" min="0">
-
+    <input id="waitDuration" type="number" value="2">
     <label>Bottom Label:</label>
-    <input type="text" id="bottomText" value="Some text at the bottom" oninput="updatePreview()">
-
+    <input id="bottomText" type="text" value="Some text at the bottom" oninput="updatePreview()">
     <label>Title Text:</label>
-    <input type="text" id="titleText" value="Title(?)" oninput="updatePreview()">
-  </div>
+    <input id="titleText" type="text" value="Title(?)" oninput="updatePreview()">
 
-  <!-- Live Preview -->
-  <div class="preview">
-    <div class="preview-title">
-      <img id="previewIcon" src="image/mine_chop_dig_animation.png" alt="Icon">
+    <div class="preview">
+      <img id="previewIcon" src="image/mine_chop_dig_animation.png" alt="">
       <span id="previewTitle">Title(?)</span>
+      <div id="previewBottom">Some text at the bottom</div>
     </div>
-    <div id="previewBottom" class="preview-bottom">Some text at the bottom</div>
+
+    <h2>Pick an Icon</h2>
+    <div id="iconSlots" class="icon-grid"></div>
+
+    <button onclick="exportConfig()">Export Config</button>
   </div>
-
-  <h2>Pick an Icon</h2>
-  <div class="slots" id="iconSlots"></div>
-
-  <button onclick="exportConfig()">Export JSON</button>
 
   <script>
-    // Pick random background each refresh
+    // Background (fullscreen cover for all)
     const backgrounds = ["image/dirt.png", "image/stone.png", "image/sky.png"];
     const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    document.body.style.background = `url(${randomBg}) repeat`;
+    document.body.style.background = `url(${randomBg}) no-repeat center center fixed`;
+    document.body.style.backgroundSize = "cover";
 
     const textures = [
       "icon_unlocked.png","icon_trending.png","icon_trailer.png","icon_trash.png",

@@ -3,38 +3,90 @@
 <head>
   <meta charset="UTF-8">
   <title>Minecraft Configurator</title>
-  <link rel="icon" type="image/png" href="image/icon.png">
-
   <style>
-    /* Import custom Minecraft font */
-    @font-face {
-      font-family: "Minecraft";
-      src: url("fonts/Minecraft.ttf") format("truetype");
-    }
-
     body {
-      background: url("image/dirt.png") repeat;
-      font-family: "Minecraft", monospace;
-      color: white;
+      font-family: Arial, sans-serif;
+      color: black;
       text-align: center;
-      margin: 0;
+      margin: 20px;
       padding: 0;
+      background: none;
     }
 
     h1 {
-      font-size: 32px;
+      font-size: 28px;
       margin: 10px 0;
     }
 
     h2 {
-      margin: 15px 0;
+      margin: 20px 0 10px;
     }
 
-    .chest {
-      position: relative;
-      display: inline-block;
+    .form-section {
+      margin: 20px auto;
+      text-align: left;
+      max-width: 400px;
     }
 
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 6px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      border: 1px solid #aaa;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #ddd;
+      color: black;
+      border: 1px solid #aaa;
+      padding: 8px 16px;
+      margin: 8px 4px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ccc;
+    }
+
+    /* Preview box */
+    .preview {
+      margin: 20px auto;
+      padding: 15px;
+      border: 1px solid #aaa;
+      width: 400px;
+    }
+
+    .preview-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .preview-title img {
+      width: 24px;
+      height: 24px;
+      image-rendering: pixelated;
+    }
+
+    .preview-bottom {
+      font-size: 16px;
+      color: #333;
+    }
+
+    /* Icon grid */
     .slots {
       display: grid;
       grid-template-columns: repeat(9, 48px);
@@ -47,12 +99,11 @@
     .slot {
       width: 48px;
       height: 48px;
-      background: url("image/hotbar_0.png") no-repeat center/cover;
+      border: 1px solid #aaa;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      position: relative;
     }
 
     .slot img {
@@ -62,102 +113,23 @@
     }
 
     .slot.selected {
-      outline: 2px solid yellow;
-    }
-
-    .form-section {
-      margin: 20px auto;
-      text-align: center;
-    }
-
-    /* Inputs & generated text stay normal font */
-    .generated-text {
-      font-family: Arial, sans-serif !important;
-    }
-
-    input[type="text"], input[type="number"] {
-      padding: 6px;
-      margin: 6px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      background: #6a0dad;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin-top: 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button:hover {
-      background: #8a2be2;
-    }
-
-    #discord {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-
-    #discord img {
-      width: 40px;
-      cursor: pointer;
-    }
-
-    /* Preview box */
-    .preview {
-      margin: 30px auto;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      width: 400px;
-      border-radius: 10px;
-    }
-
-    .preview-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-family: "Minecraft", monospace;
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-
-    .preview-title img {
-      width: 30px;
-      height: 30px;
-      image-rendering: pixelated;
-    }
-
-    .preview-bottom {
-      font-family: "Minecraft", monospace;
-      font-size: 18px;
-      color: #cccccc;
+      outline: 2px solid black;
     }
   </style>
 </head>
 <body>
 
-  <!-- Discord Button -->
-  <a id="" href="https://discord.gg/6FxqdTmxAu" target="_blank">
-    <img src="image/discord.png" alt="">
-  </a>
-
   <h1>Minecraft Configurator</h1>
 
   <div class="form-section">
-    <label class="generated-text">Wait Duration (seconds):</label>
-    <input type="number" id="waitDuration" value="2" min="0" class="generated-text"><br>
+    <label>Wait Duration (seconds):</label>
+    <input type="number" id="waitDuration" value="2" min="0">
 
-    <label class="generated-text">Bottom Label:</label>
-    <input type="text" id="bottomText" value="Some text at the bottom" class="generated-text" oninput="updatePreview()"><br>
+    <label>Bottom Label:</label>
+    <input type="text" id="bottomText" value="Some text at the bottom" oninput="updatePreview()">
 
-    <label class="generated-text">Title Text:</label>
-    <input type="text" id="titleText" value="Title(?)" class="generated-text" oninput="updatePreview()"><br>
+    <label>Title Text:</label>
+    <input type="text" id="titleText" value="Title(?)" oninput="updatePreview()">
   </div>
 
   <!-- Live Preview -->
@@ -170,7 +142,6 @@
   </div>
 
   <h2>Pick an Icon</h2>
-
   <div class="slots" id="iconSlots"></div>
 
   <button onclick="exportConfig()">Export JSON</button>
@@ -189,7 +160,7 @@
     let selectedTexture = "mine_chop_dig_animation.png"; // default
 
     const slots = document.getElementById("iconSlots");
-    const totalSlots = 54; // Large chest grid (6 rows × 9 cols)
+    const totalSlots = 54; // 6 rows × 9 cols
 
     for (let i = 0; i < totalSlots; i++) {
       const slot = document.createElement("div");
@@ -238,7 +209,6 @@
 
     function exportConfig() {
       const config = buildConfigObject();
-
       const blob = new Blob([JSON.stringify(config, null, 2)], {type: "application/json"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -248,9 +218,8 @@
       URL.revokeObjectURL(url);
     }
 
-    // Initialize preview on load
+    // Initialize preview
     updatePreview();
   </script>
-
 </body>
 </html>
